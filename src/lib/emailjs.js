@@ -13,8 +13,8 @@ export const sendApprovalEmail = async ({
     const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
     const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
-    // ডাউনলোড লিংক (ডেপ্লয়ের পর আসল ডোমেইন বসাবেন)
-    const downloadLink = `http://127.0.0.1:3000/download/${order_id}`;
+    // Live Vercel URL for download link
+    const downloadLink = `https://themes-store.vercel.app/download/${order_id}`;
 
     const templateParams = {
       customer_name: customer_name || 'Customer',
