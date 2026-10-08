@@ -14,6 +14,7 @@ export function StoreProvider({ children }) {
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
   const exchangeRate = 120;
 
+  // LocalStorage Load
   useEffect(() => {
     const savedWishlist = localStorage.getItem('nurislam_wishlist');
     const savedCurrency = localStorage.getItem('nurislam_currency');
@@ -21,93 +22,52 @@ export function StoreProvider({ children }) {
     if (savedCurrency) setCurrency(savedCurrency);
   }, []);
 
+  // LocalStorage Save
   useEffect(() => {
     localStorage.setItem('nurislam_wishlist', JSON.stringify(wishlist));
     localStorage.setItem('nurislam_currency', currency);
   }, [wishlist, currency]);
 
+  // ========== THEMES ==========
   const fetchThemes = async () => {
     setIsLoadingThemes(true);
     const { data, error } = await supabase.from('themes').select('*');
-    if (error) {
-      console.error('fetchThemes ERROR:', error.message);
-      setThemes([]);
-    } else {
-      setThemes(data || []);
-    }
+    if (!error && data) setThemes(data);
     setIsLoadingThemes(false);
   };
 
-  const fetchReviews = async () => {
-    setIsLoadingReviews(true);
-    const { data, error } = await supabase.from('reviews').select('*');
+  const createTheme = async (theme) => {
+    const { data, error } = await supabase.from('themes').insert([theme]).select();
     if (!error && data) {
-      const grouped = data.reduce((acc, rev) => {
-        if (!acc[rev.theme_slug]) acc[rev.theme_slug] = [];
-        acc[rev.theme_slug].push(rev);
-        return acc;
-      }, {});
-      setReviews(grouped);
-    }
-    setIsLoadingReviews(false);
-  };
-
-  useEffect(() => {
-    fetchThemes();
-    fetchReviews();
-  }, []);
-
-  const toggleWishlist = (theme) => {
-    setWishlist((prev) => {
-      const exists = prev.find((item) => item.id === theme.id);
-      if (exists) return prev.filter((item) => item.id !== theme.id);
-      return [...prev, theme];
-    });
-  };
-  const isInWishlist = (id) => wishlist.some((item) => item.id === id);
-
-  const toggleCurrency = () => setCurrency((prev) => (prev === 'USD' ? 'BDT' : 'USD'));
-  const formatPrice = (priceInUSD) => {
-    if (currency === 'USD') return `$${priceInUSD}`;
-    return `৳${(priceInUSD * exchangeRate).toLocaleString('en-BD')}`;
-  };
-
-  const addReview = async (themeSlug, review) => {
-    const { data, error } = await supabase
-      .from('reviews')
-      .insert([{ theme_slug: themeSlug, name: review.name, rating: review.rating, comment: review.comment }])
-      .select();
-    if (!error && data) {
-      setReviews((prev) => ({ ...prev, [themeSlug]: [data[0], ...(prev[themeSlug] || [])] }));
+      setThemes((prev) => [data[0], ...prev]);
       return { success: true };
     }
     return { success: false, error: error?.message };
   };
 
-  const deleteReview = async (reviewId, themeSlug) => {
-    const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
-    if (!error) {
-      setReviews((prev) => ({
-        ...prev,
-        [themeSlug]: (prev[themeSlug] || []).filter(r => r.id !== reviewId)
-      }));
+  const updateTheme = async (id, theme) => {
+    const { data, error } = await supabase.from('themes').update(theme).eq('id', id).select();
+    if (!error && data) {
+      setThemes((prev) => prev.map(t => t.id === id ? data[0] : t));
       return { success: true };
     }
-    return { success: false };
+    return { success: false, error: error?.message };
   };
 
-  const getAllReviews = async () => {
-    const { data, error } = await supabase.from('reviews').select('*');
-    if (!error) return { success: true, reviews: data };
-    return { success: false, reviews: [] };
-  };
+  // Improved delete: chcek if actually deleted
+  const deleteTheme = async (id) => {
+    const { data, error } = await supabase
+      .from('themes')
+      .delete()
+      .eq('id', id)
+      .select();
 
-  const getReviews = (themeSlug) => reviews[themeSlug] || [];
-  const getAverageRating = (themeSlug) => {
-    const themeReviews = reviews[themeSlug] || [];
-    if (themeReviews.length === 0) return 0;
-    const sum = themeReviews.reduce((acc, r) => acc + r.rating, 0);
-    return (sum / themeReviews.length).toFixed(1);
+    if (error) return { success: false, error: error.message };
+    if (!data || data.length === 0) {
+      return { success: false, error: 'Permission denied — theme was not deleted' };
+    }
+    setThemes((prev) => prev.filter(t => t.id !== id));
+    return { success: true };
   };
 
   const uploadImage = async (file) => {
@@ -132,33 +92,67 @@ export function StoreProvider({ children }) {
     }
   };
 
-  const createTheme = async (theme) => {
-    const { data, error } = await supabase.from('themes').insert([theme]).select();
+  // ========== REVIEWS ==========
+  const fetchReviews = async () => {
+    setIsLoadingReviews(true);
+    const { data, error } = await supabase.from('reviews').select('*');
     if (!error && data) {
-      setThemes((prev) => [data[0], ...prev]);
-      return { success: true };
+      const grouped = data.reduce((acc, rev) => {
+        if (!acc[rev.theme_slug]) acc[rev.theme_slug] = [];
+        acc[rev.theme_slug].push(rev);
+        return acc;
+      }, {});
+      setReviews(grouped);
     }
-    return { success: false, error: error?.message };
+    setIsLoadingReviews(false);
   };
 
-  const updateTheme = async (id, theme) => {
-    const { data, error } = await supabase.from('themes').update(theme).eq('id', id).select();
+  const addReview = async (themeSlug, review) => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert([{ theme_slug: themeSlug, name: review.name, rating: review.rating, comment: review.comment }])
+      .select();
     if (!error && data) {
-      setThemes((prev) => prev.map(t => t.id === id ? data[0] : t));
+      setReviews((prev) => ({ ...prev, [themeSlug]: [data[0], ...(prev[themeSlug] || [])] }));
       return { success: true };
     }
     return { success: false, error: error?.message };
   };
 
-  const deleteTheme = async (id) => {
-    const { error } = await supabase.from('themes').delete().eq('id', id);
-    if (!error) {
-      setThemes((prev) => prev.filter(t => t.id !== id));
-      return { success: true };
+  // Improved delete: chcek if actually deleted
+  const deleteReview = async (reviewId, themeSlug) => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .delete()
+      .eq('id', reviewId)
+      .select();
+
+    if (error) return { success: false, error: error.message };
+    if (!data || data.length === 0) {
+      return { success: false, error: 'Permission denied — review was not deleted' };
     }
-    return { success: false, error: error?.message };
+    setReviews((prev) => ({
+      ...prev,
+      [themeSlug]: (prev[themeSlug] || []).filter(r => r.id !== reviewId)
+    }));
+    return { success: true };
   };
 
+  const getAllReviews = async () => {
+    const { data, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
+    if (!error) return { success: true, reviews: data };
+    return { success: false, reviews: [] };
+  };
+
+  const getReviews = (themeSlug) => reviews[themeSlug] || [];
+  const getAverageRating = (themeSlug) => {
+    const themeReviews = reviews[themeSlug] || [];
+    if (themeReviews.length === 0) return 0;
+    const sum = themeReviews.reduce((acc, r) => acc + r.rating, 0);
+    return (sum / themeReviews.length).toFixed(1);
+  };
+
+  // ========== ORDERS ==========
   const createOrder = async (orderData) => {
     const { data, error } = await supabase.from('orders').insert([orderData]).select();
     if (!error && data) return { success: true, order: data[0] };
@@ -172,16 +166,53 @@ export function StoreProvider({ children }) {
   };
 
   const updateOrderStatus = async (orderId, status) => {
-    const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
-    if (!error) return { success: true };
-    return { success: false };
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', orderId)
+      .select();
+
+    if (error) return { success: false, error: error.message };
+    if (!data || data.length === 0) return { success: false, error: 'Update failed' };
+    return { success: true };
   };
 
+  // Improved delete: chcek if actually deleted
   const deleteOrder = async (orderId) => {
-    const { error } = await supabase.from('orders').delete().eq('id', orderId);
-    if (!error) return { success: true };
-    return { success: false, error: error?.message };
+    const { data, error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', orderId)
+      .select();
+
+    if (error) return { success: false, error: error.message };
+    if (!data || data.length === 0) {
+      return { success: false, error: 'Permission denied — order was not deleted' };
+    }
+    return { success: true };
   };
+
+  // ========== WISHLIST & CURRENCY ==========
+  const toggleWishlist = (theme) => {
+    setWishlist((prev) => {
+      const exists = prev.find((item) => item.id === theme.id);
+      if (exists) return prev.filter((item) => item.id !== theme.id);
+      return [...prev, theme];
+    });
+  };
+  const isInWishlist = (id) => wishlist.some((item) => item.id === id);
+
+  const toggleCurrency = () => setCurrency((prev) => (prev === 'USD' ? 'BDT' : 'USD'));
+  const formatPrice = (priceInUSD) => {
+    if (currency === 'USD') return `$${priceInUSD}`;
+    return `৳${(priceInUSD * exchangeRate).toLocaleString('en-BD')}`;
+  };
+
+  // Init fetch
+  useEffect(() => {
+    fetchThemes();
+    fetchReviews();
+  }, []);
 
   return (
     <StoreContext.Provider value={{ 
