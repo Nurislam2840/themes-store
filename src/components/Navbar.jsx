@@ -1,0 +1,259 @@
+"use client";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  FaSearch, FaHeart, FaUser, FaSignOutAlt, FaDownload, 
+  FaChevronDown, FaBars, FaTimes, FaCode, FaReact, 
+  FaWordpress, FaHtml5, FaLayerGroup 
+} from "react-icons/fa";
+import { useCartWishlistStore } from "@/store/cartWishlistStore";
+import { supabase } from "@/lib/supabase";
+import CartDrawer from "@/components/CartDrawer";
+import SearchModal from "@/components/SearchModal";
+
+export default function Navbar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  
+  const [user, setUser] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isThemesHovered, setIsThemesHovered] = useState(false);
+
+  const cartCount = useCartWishlistStore((s) => s.cart.reduce((n, i) => n + i.quantity, 0));
+  const wishCount = useCartWishlistStore((s) => s.wishlist.length);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && !session.user.is_anonymous) {
+        const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).single();
+        setUser(profile?.role === "admin" ? null : session.user);
+      } else {
+        setUser(null);
+      }
+    };
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session && !session.user.is_anonymous) {
+        const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).single();
+        setUser(profile?.role === "admin" ? null : session.user);
+      } else {
+        setUser(null);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => { setIsMobileMenuOpen(false); setIsMenuOpen(false); }, [pathname]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+    setIsMenuOpen(false);
+    setIsMobileMenuOpen(false);
+  };
+
+  const categories = [
+    { name: "All Themes", icon: <FaLayerGroup />, href: "/themes", color: "text-brand-gold" },
+    { name: "Next.js", icon: <FaCode />, href: "/themes?category=Next.js", color: "text-white" },
+    { name: "React", icon: <FaReact />, href: "/themes?category=React", color: "text-cyan-400" },
+    { name: "WordPress", icon: <FaWordpress />, href: "/themes?category=WordPress", color: "text-blue-400" },
+    { name: "HTML/CSS", icon: <FaHtml5 />, href: "/themes?category=HTML/CSS", color: "text-orange-400" },
+  ];
+
+  const links = [
+    { name: "Home", href: "/" },
+    { name: "Pricing", href: "/pricing" },
+    { name: "Contact", href: "/contact" },
+  ];
+
+  return (
+    <>
+      <nav className="fixed top-0 w-full z-50 bg-[#09090B]/80 backdrop-blur-2xl border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
+
+          <Link href="/" className="flex items-center gap-3 group z-50">
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold to-yellow-300 flex items-center justify-center text-brand-dark font-black text-xl shadow-[0_0_20px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-transform">
+              T
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white hidden sm:block">
+              Themes<span className="text-brand-gold">Store</span>
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-10">
+            <Link href="/" className={`relative text-sm font-semibold tracking-wide transition-colors hover:text-white ${pathname === "/" ? "text-brand-gold" : "text-brand-muted"}`}>
+              Home
+              {pathname === "/" && <motion.div layoutId="underline" className="absolute left-0 right-0 -bottom-2 h-[2px] bg-brand-gold rounded-full" />}
+            </Link>
+
+            <div 
+              className="relative"
+              onMouseEnter={() => setIsThemesHovered(true)}
+              onMouseLeave={() => setIsThemesHovered(false)}
+            >
+              <Link 
+                href="/themes" 
+                className={`flex items-center gap-1.5 text-sm font-semibold tracking-wide transition-colors ${isThemesHovered || pathname.includes("/themes") ? "text-brand-gold" : "text-brand-muted"}`}
+              >
+                Themes
+                <FaChevronDown size={10} className={`transition-transform duration-300 ${isThemesHovered ? "rotate-180" : ""}`} />
+              </Link>
+
+              <AnimatePresence>
+                {isThemesHovered && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full left-1/2 -translate-x-1/2 pt-6 w-72 z-50"
+                  >
+                    <div className="bg-[#121214]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-2">
+                      <div className="px-4 py-2 mb-2 border-b border-white/5">
+                        <p className="text-[10px] text-brand-muted uppercase tracking-widest font-bold">Browse Categories</p>
+                      </div>
+                      {categories.map((cat, i) => (
+                        <Link key={i} href={cat.href}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-brand-muted hover:text-white hover:bg-white/5 transition-colors group"
+                        >
+                          <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${cat.color} group-hover:scale-110 transition-transform`}>
+                            {cat.icon}
+                          </div>
+                          <span className="font-medium">{cat.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {links.filter(l => l.name !== "Home").map((link) => (
+              <Link key={link.name} href={link.href}
+                className={`relative text-sm font-semibold tracking-wide transition-colors hover:text-white ${pathname === link.href ? "text-brand-gold" : "text-brand-muted"}`}
+              >
+                {link.name}
+                {pathname === link.href && <motion.div layoutId="underline" className="absolute left-0 right-0 -bottom-2 h-[2px] bg-brand-gold rounded-full" />}
+              </Link>
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 md:gap-4">
+            <button onClick={() => setIsSearchOpen(true)} className="p-2 text-brand-muted hover:text-white transition-all hover:scale-110">
+              <FaSearch size={18} />
+            </button>
+
+            <Link href="/wishlist" className="relative p-2 text-brand-muted hover:text-brand-gold transition-all hover:scale-110">
+              <FaHeart size={18} />
+              {wishCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-brand-gold text-black text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg">
+                  {wishCount}
+                </span>
+              )}
+            </Link>
+
+            <CartDrawer cartCount={cartCount} />
+
+            <div className="relative ml-2">
+              {user ? (
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="flex items-center gap-2 bg-white/5 border border-white/10 hover:border-brand-gold/50 hover:bg-white/10 px-3 py-2 rounded-full text-sm font-semibold text-white transition-all"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-gold to-yellow-300 text-black flex items-center justify-center text-xs font-bold">
+                      {user.email.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="hidden md:block max-w-[100px] truncate">{user.email.split("@")[0]}</span>
+                    <FaChevronDown size={10} className={`hidden md:block transition-transform ${isMenuOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {isMenuOpen && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      className="absolute right-0 mt-3 w-56 bg-[#121214]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-2 z-50"
+                    >
+                      <div className="px-5 py-3 border-b border-white/5 mb-2">
+                        <p className="text-xs text-brand-muted mb-1">Signed in as</p>
+                        <p className="text-sm text-white font-semibold truncate">{user.email}</p>
+                      </div>
+                      <Link href="/my-downloads" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-5 py-3 text-sm text-brand-muted hover:text-white hover:bg-white/5 transition-colors">
+                        <FaDownload size={14} /> My Downloads
+                      </Link>
+                      <button onClick={handleLogout} className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors text-left">
+                        <FaSignOutAlt size={14} /> Logout
+                      </button>
+                    </motion.div>
+                  )}
+                </div>
+              ) : (
+                <Link href="/account/login"
+                  className="relative overflow-hidden group flex items-center gap-2 bg-brand-gold hover:bg-brand-gold-hover text-black px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+                >
+                  <FaUser size={12} className="relative z-10" />
+                  <span className="hidden sm:block relative z-10">Login</span>
+                </Link>
+              )}
+            </div>
+
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-2 text-white ml-1">
+              {isMobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu (স্লাইডিং অ্যানিমেশনসহ) */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div 
+              initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="fixed top-20 left-0 h-[calc(100vh-5rem)] w-72 bg-[#09090B]/98 backdrop-blur-2xl border-r border-white/10 z-40 md:hidden overflow-y-auto"
+            >
+              <div className="flex flex-col p-6 space-y-2">
+                <Link href="/" className={`px-4 py-3.5 rounded-xl text-base font-semibold ${pathname === "/" ? "bg-brand-gold/10 text-brand-gold border border-brand-gold/20" : "text-brand-muted hover:bg-white/5 hover:text-white"}`}>Home</Link>
+                
+                <p className="text-xs text-brand-muted uppercase tracking-wider px-4 pt-3 pb-1">Themes</p>
+                {categories.map((cat, i) => (
+                  <Link key={i} href={cat.href} className="px-4 py-3 rounded-xl text-sm font-semibold text-brand-muted hover:bg-white/5 hover:text-white flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${cat.color}`}>{cat.icon}</div>
+                    {cat.name}
+                  </Link>
+                ))}
+
+                <p className="text-xs text-brand-muted uppercase tracking-wider px-4 pt-3 pb-1">Pages</p>
+                {links.filter(l => l.name !== "Home").map((link) => (
+                  <Link key={link.name} href={link.href}
+                    className={`px-4 py-3.5 rounded-xl text-base font-semibold ${
+                      pathname === link.href ? "bg-brand-gold/10 text-brand-gold border border-brand-gold/20" : "text-brand-muted hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+    </>
+  );
+}
