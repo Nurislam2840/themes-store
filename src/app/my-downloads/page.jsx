@@ -70,6 +70,7 @@ export default function MyDownloadsPage() {
 
       <div className="max-w-6xl mx-auto relative z-10">
         
+        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 text-brand-gold text-xs font-bold tracking-widest mb-3 border border-brand-gold/20">
@@ -81,16 +82,21 @@ export default function MyDownloadsPage() {
             <p className="text-brand-muted text-sm mt-2">Manage your purchases and download your premium themes.</p>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Link href="/" className="bg-white/5 border border-white/10 hover:border-brand-gold/50 hover:bg-white/10 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2 backdrop-blur-md">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/" className="bg-white/5 border border-white/10 hover:border-brand-gold/50 hover:bg-white/10 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2 backdrop-blur-md">
               <FaShoppingBag /> Store
             </Link>
-            <button onClick={handleLogout} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 backdrop-blur-md">
+            <Link href="/account/profile" className="bg-white/5 border border-white/10 hover:border-brand-gold/50 hover:bg-white/10 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2 backdrop-blur-md">
+              <FaUser /> Profile
+            </Link>
+            <button onClick={handleLogout} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 backdrop-blur-md">
               <FaSignOutAlt /> Logout
             </button>
           </div>
         </div>
 
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="relative bg-[#121214] border border-white/5 rounded-3xl p-6 overflow-hidden group hover:border-brand-gold/30 transition-colors flex items-center gap-4">
@@ -127,6 +133,7 @@ export default function MyDownloadsPage() {
           </motion.div>
         </div>
 
+        {/* Downloads List */}
         <div>
           <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2"><FaBoxOpen className="text-brand-gold" /> Your Downloads</h2>
           {orders.length === 0 ? (

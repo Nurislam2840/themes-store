@@ -10,7 +10,8 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
-    email: "", phone: "", location: "", facebook: "", twitter: "", instagram: "", linkedin: "", github: ""
+    email: "", phone: "", location: "", facebook: "", twitter: "", instagram: "", linkedin: "", github: "",
+    default_theme: "dark" // নতুন ফিল্ড
   });
 
   useEffect(() => {
@@ -30,7 +31,8 @@ export default function AdminSettingsPage() {
     const { error } = await supabase.from("site_settings").update({
       email: settings.email, phone: settings.phone, location: settings.location,
       facebook: settings.facebook, twitter: settings.twitter, instagram: settings.instagram,
-      linkedin: settings.linkedin, github: settings.github
+      linkedin: settings.linkedin, github: settings.github,
+      default_theme: settings.default_theme // থিম আপডেট
     }).eq("id", 1);
 
     if (error) showAlert("Failed to save settings", "error");
@@ -50,10 +52,20 @@ export default function AdminSettingsPage() {
           <h1 className="text-3xl md:text-4xl font-extrabold text-white flex items-center gap-3">
             <FaCog className="text-brand-gold" /> Site Settings
           </h1>
-          <p className="text-brand-muted text-sm mt-2">Update your contact info and social media links.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-[#121214] border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+          
+          {/* ডিফল্ট থিম সিলেক্টর */}
+          <div className="mb-8 bg-[#09090B] border border-white/10 rounded-xl p-4">
+            <label className="block text-sm font-bold text-white mb-2">Default Theme (For Guests)</label>
+            <p className="text-xs text-brand-muted mb-3">This theme will be applied to all new visitors who are not logged in.</p>
+            <select name="default_theme" value={settings.default_theme || "dark"} onChange={handleChange} className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold">
+              <option value="dark">Dark Mode (Premium Black & Gold)</option>
+              <option value="light">Light Mode (Clean White)</option>
+            </select>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
             <div>
               <label className="block text-xs text-brand-muted mb-2">Contact Email</label>
@@ -69,24 +81,12 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <h3 className="text-lg font-bold text-white mb-4 mt-8 border-t border-white/5 pt-6">Social Media Links (Full URLs)</h3>
+          <h3 className="text-lg font-bold text-white mb-4 mt-8 border-t border-white/5 pt-6">Social Media Links</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-            <div>
-              <label className="block text-xs text-brand-muted mb-2">Facebook URL</label>
-              <input type="text" name="facebook" value={settings.facebook || ""} onChange={handleChange} placeholder="https://facebook.com/..." className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
-            </div>
-            <div>
-              <label className="block text-xs text-brand-muted mb-2">Twitter / X URL</label>
-              <input type="text" name="twitter" value={settings.twitter || ""} onChange={handleChange} placeholder="https://twitter.com/..." className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
-            </div>
-            <div>
-              <label className="block text-xs text-brand-muted mb-2">Instagram URL</label>
-              <input type="text" name="instagram" value={settings.instagram || ""} onChange={handleChange} placeholder="https://instagram.com/..." className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
-            </div>
-            <div>
-              <label className="block text-xs text-brand-muted mb-2">LinkedIn URL</label>
-              <input type="text" name="linkedin" value={settings.linkedin || ""} onChange={handleChange} placeholder="https://linkedin.com/in/..." className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
-            </div>
+            <div><label className="block text-xs text-brand-muted mb-2">Facebook URL</label><input type="text" name="facebook" value={settings.facebook || ""} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+            <div><label className="block text-xs text-brand-muted mb-2">Twitter / X URL</label><input type="text" name="twitter" value={settings.twitter || ""} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+            <div><label className="block text-xs text-brand-muted mb-2">Instagram URL</label><input type="text" name="instagram" value={settings.instagram || ""} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+            <div><label className="block text-xs text-brand-muted mb-2">LinkedIn URL</label><input type="text" name="linkedin" value={settings.linkedin || ""} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
           </div>
 
           <button type="submit" disabled={saving} className="bg-brand-gold hover:bg-brand-gold-hover text-black font-bold px-8 py-3.5 rounded-xl transition-all flex items-center gap-2 text-sm">

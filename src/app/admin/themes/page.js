@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function AdminThemesPage() {
   const { showAlert } = useAlert();
   const [themes, setThemes] = useState([]);
+  const [dbCategories, setDbCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -17,19 +18,22 @@ export default function AdminThemesPage() {
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
-    title: "", slug: "", category: "Next.js", price: "", old_price: "",
+    title: "", slug: "", category_id: "", price: "", old_price: "",
     description: "", image_url: "", demo_url: "#", download_url: "", 
     featuresText: "", galleryText: "", is_premium: false
   });
 
-  const fetchThemes = async () => {
+  const fetchData = async () => {
     setLoading(true);
-    const { data } = await supabase.from("themes").select("*").order("created_at", { ascending: false });
-    if (data) setThemes(data);
+    const { data: themeData } = await supabase.from("themes").select("*").order("created_at", { ascending: false });
+    const { data: catData } = await supabase.from("categories").select("*").order("order_index");
+    
+    if (themeData) setThemes(themeData);
+    if (catData) setDbCategories(catData);
     setLoading(false);
   };
 
-  useEffect(() => { fetchThemes(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -60,14 +64,18 @@ export default function AdminThemesPage() {
     
     const featuresArray = form.featuresText.split(",").map(f => f.trim()).filter(f => f !== "");
     const galleryArray = form.galleryText.split(",").map(g => g.trim()).filter(g => g !== "");
+    const selectedCat = dbCategories.find(c => c.id === form.category_id);
 
     const themeData = {
-      title: form.title, slug: form.slug, category: form.category,
+      title: form.title, slug: form.slug, 
+      category_id: form.category_id || null,
+      category: selectedCat ? selectedCat.name : "", // পুরনো টেক্সট কলামের জন্য
       price: parseFloat(form.price), 
       old_price: form.old_price ? parseFloat(form.old_price) : null,
       description: form.description, image_url: form.image_url, demo_url: form.demo_url, download_url: form.download_url,
       features: featuresArray, gallery_images: galleryArray, 
-      technologies: [form.category], is_premium: form.is_premium
+      technologies: selectedCat ? [selectedCat.name] : [], 
+      is_premium: form.is_premium
     };
 
     let error;
@@ -84,14 +92,14 @@ export default function AdminThemesPage() {
     else {
       showAlert(editingId ? "Theme updated!" : "Theme added!", "success");
       closeForm();
-      fetchThemes();
+      fetchData();
     }
   };
 
   const handleEdit = (theme) => {
     setForm({
-      title: theme.title, slug: theme.slug, category: theme.category, price: theme.price,
-      old_price: theme.old_price || "",
+      title: theme.title, slug: theme.slug, category_id: theme.category_id || "",
+      price: theme.price, old_price: theme.old_price || "",
       description: theme.description, image_url: theme.image_url, demo_url: theme.demo_url || "#", 
       download_url: theme.download_url || "", 
       featuresText: theme.features ? theme.features.join(", ") : "",
@@ -104,9 +112,8 @@ export default function AdminThemesPage() {
   };
 
   const closeForm = () => {
-    setShowForm(false);
-    setEditingId(null);
-    setForm({ title: "", slug: "", category: "Next.js", price: "", old_price: "", description: "", image_url: "", demo_url: "#", download_url: "", featuresText: "", galleryText: "", is_premium: false });
+    setShowForm(false); setEditingId(null);
+    setForm({ title: "", slug: "", category_id: "", price: "", old_price: "", description: "", image_url: "", demo_url: "#", download_url: "", featuresText: "", galleryText: "", is_premium: false });
   };
 
   const handleDelete = async (id, imageUrl) => {
@@ -118,7 +125,7 @@ export default function AdminThemesPage() {
       if (path) await supabase.storage.from("theme-images").remove([path]);
     }
     showAlert("Theme deleted!", "success");
-    fetchThemes();
+    fetchData();
   };
 
   const filteredThemes = themes.filter(t => t.title.toLowerCase().includes(search.toLowerCase()));
@@ -128,21 +135,12 @@ export default function AdminThemesPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <Link href="/admin" className="inline-flex items-center gap-2 text-brand-muted hover:text-brand-gold mb-2 text-sm font-medium">
-              <FaArrowLeft /> Back to Dashboard
-            </Link>
+            <Link href="/admin" className="inline-flex items-center gap-2 text-brand-muted hover:text-brand-gold mb-2 text-sm font-medium"><FaArrowLeft /> Back to Dashboard</Link>
             <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Manage Themes</h1>
-            <p className="text-brand-muted text-sm mt-1">{themes.length} themes in total</p>
           </div>
-          <button onClick={() => { closeForm(); setShowForm(!showForm); }} className="bg-brand-gold hover:bg-brand-gold-hover text-black px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] flex items-center gap-2 text-sm">
+          <button onClick={() => { closeForm(); setShowForm(!showForm); }} className="bg-brand-gold hover:bg-brand-gold-hover text-black px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 text-sm">
             {showForm ? <><FaTimes /> Cancel</> : <><FaPlus /> Add New Theme</>}
           </button>
-        </div>
-
-        <div className="relative mb-6">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
-          <input type="text" placeholder="Search themes..." value={search} onChange={(e) => setSearch(e.target.value)} 
-            className="w-full bg-[#121214] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
         </div>
 
         <AnimatePresence>
@@ -152,30 +150,28 @@ export default function AdminThemesPage() {
                 <h3 className="text-lg font-bold text-white mb-5">{editingId ? "Edit Theme" : "Add New Theme"}</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                  <div><label className="block text-xs text-brand-muted mb-2">Title</label>
-                    <input type="text" name="title" value={form.title} onChange={handleChange} required className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
-                  <div><label className="block text-xs text-brand-muted mb-2">Slug</label>
-                    <input type="text" name="slug" value={form.slug} readOnly className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-brand-muted text-sm outline-none" /></div>
-                  <div><label className="block text-xs text-brand-muted mb-2">Category</label>
-                    <select name="category" value={form.category} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold">
-                      <option>Next.js</option><option>React</option><option>WordPress</option><option>HTML/CSS</option>
-                    </select></div>
+                  <div><label className="block text-xs text-brand-muted mb-2">Title</label><input type="text" name="title" value={form.title} onChange={handleChange} required className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                  <div><label className="block text-xs text-brand-muted mb-2">Slug</label><input type="text" name="slug" value={form.slug} readOnly className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-brand-muted text-sm outline-none" /></div>
+                  
+                  <div>
+                    <label className="block text-xs text-brand-muted mb-2">Category</label>
+                    <select name="category_id" value={form.category_id} onChange={handleChange} required className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold">
+                      <option value="">Select Category</option>
+                      {dbCategories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.parent_id ? `↳ ${cat.name}` : cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
                   <div className="grid grid-cols-2 gap-3">
-                    <div><label className="block text-xs text-brand-muted mb-2">Current Price (৳)</label>
-                      <input type="number" name="price" value={form.price} onChange={handleChange} required step="1" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
-                    <div><label className="block text-xs text-brand-muted mb-2">Old Price (৳)</label>
-                      <input type="number" name="old_price" value={form.old_price} onChange={handleChange} step="1" placeholder="Optional" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                    <div><label className="block text-xs text-brand-muted mb-2">Current Price (৳)</label><input type="number" name="price" value={form.price} onChange={handleChange} required step="1" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                    <div><label className="block text-xs text-brand-muted mb-2">Old Price (৳)</label><input type="number" name="old_price" value={form.old_price} onChange={handleChange} step="1" placeholder="Optional" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                   </div>
                 </div>
 
-                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Description</label>
-                  <textarea name="description" value={form.description} onChange={handleChange} required rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
-                
-                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Features (Comma separated)</label>
-                  <textarea name="featuresText" value={form.featuresText} onChange={handleChange} rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
-                
-                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Gallery Images (Comma separated URLs)</label>
-                  <textarea name="galleryText" value={form.galleryText} onChange={handleChange} rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
+                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Description</label><textarea name="description" value={form.description} onChange={handleChange} required rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
+                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Features (Comma separated)</label><textarea name="featuresText" value={form.featuresText} onChange={handleChange} rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
+                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Gallery Images (Comma separated URLs)</label><textarea name="galleryText" value={form.galleryText} onChange={handleChange} rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
 
                 <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4 flex items-center justify-between">
                   <div><p className="text-sm font-bold text-white mb-0.5">Premium Theme (PRO)</p></div>
@@ -186,10 +182,8 @@ export default function AdminThemesPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-                  <div><label className="block text-xs text-brand-muted mb-2">Demo URL</label>
-                    <input type="text" name="demo_url" value={form.demo_url} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
-                  <div><label className="block text-xs text-brand-muted mb-2">Download URL</label>
-                    <input type="text" name="download_url" value={form.download_url} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                  <div><label className="block text-xs text-brand-muted mb-2">Demo URL</label><input type="text" name="demo_url" value={form.demo_url} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                  <div><label className="block text-xs text-brand-muted mb-2">Download URL</label><input type="text" name="download_url" value={form.download_url} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                 </div>
 
                 <div className="mb-6">
@@ -210,6 +204,11 @@ export default function AdminThemesPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <div className="relative mb-6">
+          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
+          <input type="text" placeholder="Search themes..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-[#121214] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
+        </div>
 
         {loading ? (
           <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div></div>
@@ -232,12 +231,8 @@ export default function AdminThemesPage() {
                     <p className="text-xs text-brand-muted uppercase">{theme.category}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                    <button onClick={() => handleEdit(theme)} className="w-9 h-9 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-colors">
-                      <FaEdit size={12} />
-                    </button>
-                    <button onClick={() => handleDelete(theme.id, theme.image_url)} className="w-9 h-9 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors">
-                      <FaTrash size={12} />
-                    </button>
+                    <button onClick={() => handleEdit(theme)} className="w-9 h-9 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-colors"><FaEdit size={12} /></button>
+                    <button onClick={() => handleDelete(theme.id, theme.image_url)} className="w-9 h-9 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors"><FaTrash size={12} /></button>
                   </div>
                 </div>
               </div>

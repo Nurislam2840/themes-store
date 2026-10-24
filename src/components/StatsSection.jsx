@@ -11,7 +11,10 @@ const Counter = ({ to, duration = 2, suffix = "", decimals = 0 }) => {
   const rounded = useTransform(count, (latest) => latest.toFixed(decimals));
 
   useEffect(() => {
-    if (inView) animate(count, to, { duration, ease: "easeOut" });
+    if (inView) {
+      // to-কে নিশ্চিতভাবে নাম্বারে রূপান্তর করা হলো
+      animate(count, Number(to), { duration, ease: "easeOut" });
+    }
   }, [inView, count, to, duration]);
 
   return <span ref={nodeRef} className="flex items-baseline"><motion.span>{rounded}</motion.span><span>{suffix}</span></span>;
@@ -44,7 +47,7 @@ export default function StatsSection() {
                   <Icon />
                 </div>
                 <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-1">
-                  <Counter to={stat.value} suffix={stat.suffix} decimals={stat.decimals} />
+                  <Counter to={Number(stat.value)} suffix={stat.suffix} decimals={Number(stat.decimals)} />
                 </h3>
                 <p className="text-gray-500 dark:text-brand-muted text-xs md:text-sm font-medium uppercase tracking-wider">{stat.label}</p>
               </motion.div>
