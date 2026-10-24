@@ -12,8 +12,9 @@ export default function CartDrawer({ cartCount }) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="relative flex items-center gap-2 bg-white/5 border border-white/10 hover:border-brand-gold/50 hover:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold text-white transition-all">
-        <FaShoppingBag className="text-brand-gold" /> 
+      {/* Compact Trigger Button for Mobile */}
+      <button onClick={() => setOpen(true)} className="relative flex items-center gap-1 md:gap-2 bg-white/5 border border-white/10 px-2 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-white transition-all">
+        <FaShoppingBag className="text-brand-gold text-sm md:text-base" /> 
         <span className="hidden sm:block">Cart</span> ({cartCount})
       </button>
 
