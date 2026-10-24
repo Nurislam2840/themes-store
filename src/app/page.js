@@ -5,6 +5,8 @@ import { FaSearch, FaArrowRight, FaBolt } from "react-icons/fa";
 import { useStore } from "@/providers/StoreProvider";
 import ThemeCard from "@/components/ThemeCard";
 import HeroBanner from "@/components/HeroBanner";
+import StatsSection from "@/components/StatsSection"; // নতুন
+import WhyChooseUs from "@/components/WhyChooseUs"; // নতুন
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -26,10 +28,12 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center w-full bg-[#09090B] overflow-hidden">
       
-      {/* 🚨 -mt-20 সরিয়ে দেওয়া হয়েছে */}
       <div className="w-full">
         <HeroBanner />
       </div>
+
+      {/* নতুন স্ট্যাটস সেকশন */}
+      <StatsSection />
 
       <div id="themes" className="w-full max-w-7xl mx-auto px-4 md:px-6 py-16 md:py-24 relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[400px] bg-brand-gold/5 blur-[100px] rounded-full pointer-events-none -z-10"></div>
@@ -82,7 +86,19 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        {filteredThemes.length > 6 && (
+          <div className="text-center mt-12">
+            <Link href="/themes" className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-brand-gold font-bold py-4 px-10 rounded-xl transition-all">
+              View All Themes <FaArrowRight size={12} />
+            </Link>
+          </div>
+        )}
       </div>
+
+      {/* নতুন Why Choose Us সেকশন */}
+      <WhyChooseUs />
+
     </div>
   );
 }

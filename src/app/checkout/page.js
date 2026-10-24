@@ -25,7 +25,6 @@ function CheckoutContent() {
     address: "Dhaka, Bangladesh",
   });
 
-  // থিম ডেটা ফেচ
   useEffect(() => {
     const init = async () => {
       if (singleSlug) {
@@ -46,7 +45,6 @@ function CheckoutContent() {
     init();
   }, [singleSlug, router, showAlert]);
 
-  // ইউজার অলরেডি লগইন থাকে তবে ইমেইল প্রি-ফিল হবে
   useEffect(() => {
     const prefillEmail = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -71,13 +69,10 @@ function CheckoutContent() {
       showAlert("Your cart is empty", "error");
       return;
     }
-
     setIsSubmitting(true);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-
-      // Guest হলে লগইন পেজে পাঠানো হবে
       if (!session || session.user.is_anonymous) {
         setIsSubmitting(false);
         showAlert("Please login or create an account to complete your purchase.", "info");
@@ -85,8 +80,7 @@ function CheckoutContent() {
         return;
       }
 
-      // পেমেন্ট ইনিশিয়েট
-      const bdtAmount = Math.round(total * 120);
+      const bdtAmount = Math.round(total); // গুণ করা বন্ধ করা হলো
       const userId = session.user.id;
 
       const response = await fetch("/api/payment/init", {
@@ -163,14 +157,14 @@ function CheckoutContent() {
                 <p className="text-xs text-brand-muted">Qty: {item.quantity || 1}</p>
               </div>
               <p className="text-lg font-bold text-brand-gold">
-                ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
+                ৳{((item.price || 0) * (item.quantity || 1)).toFixed(2)}
               </p>
             </div>
           ))}
         </div>
         <div className="border-t border-brand-gold/20 mt-4 pt-4 flex justify-between items-center">
           <span className="text-white font-semibold">Total</span>
-          <span className="text-2xl font-bold text-brand-gold">${total.toFixed(2)}</span>
+          <span className="text-2xl font-bold text-brand-gold">৳{total.toFixed(2)}</span>
         </div>
       </div>
 
@@ -181,29 +175,25 @@ function CheckoutContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm text-brand-muted mb-2">Full Name</label>
-              <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your full name" required
-                className="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 outline-none focus:border-brand-gold transition text-white text-sm" />
+              <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your full name" required className="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 outline-none focus:border-brand-gold transition text-white text-sm" />
             </div>
             <div>
               <label className="block text-sm text-brand-muted mb-2">Email Address</label>
-              <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="you@example.com" required
-                className="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 outline-none focus:border-brand-gold transition text-white text-sm" />
+              <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="you@example.com" required className="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 outline-none focus:border-brand-gold transition text-white text-sm" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm text-brand-muted mb-2">Phone Number</label>
-            <input type="text" name="phone" value={form.phone} onChange={handleChange} placeholder="017XXXXXXXX" required
-              className="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 outline-none focus:border-brand-gold transition text-white text-sm" />
+            <input type="text" name="phone" value={form.phone} onChange={handleChange} placeholder="017XXXXXXXX" required className="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 outline-none focus:border-brand-gold transition text-white text-sm" />
           </div>
 
           <div className="pt-4 mt-4 border-t border-brand-border/50">
-            <button type="submit" disabled={isSubmitting}
-              className="w-full bg-brand-gold hover:bg-brand-gold-hover disabled:opacity-70 text-brand-dark font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] flex items-center justify-center gap-2 mt-4 text-lg">
+            <button type="submit" disabled={isSubmitting} className="w-full bg-brand-gold hover:bg-brand-gold-hover disabled:opacity-70 text-brand-dark font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] flex items-center justify-center gap-2 mt-4 text-lg">
               {isSubmitting ? (
                 <><div className="w-5 h-5 border-2 border-brand-dark border-t-transparent rounded-full animate-spin"></div> Processing...</>
               ) : (
-                <>Pay Now (${total.toFixed(2)})</>
+                <>Pay Now (৳{total.toFixed(2)})</>
               )}
             </button>
             <p className="text-center text-xs text-brand-muted mt-4 flex items-center justify-center gap-2">

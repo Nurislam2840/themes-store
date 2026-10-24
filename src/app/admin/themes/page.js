@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
-import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaLink, FaSearch } from "react-icons/fa";
+import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaLink, FaSearch, FaEdit } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminThemesPage() {
@@ -14,17 +14,18 @@ export default function AdminThemesPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
-    title: "", slug: "", category: "Next.js", price: "", 
+    title: "", slug: "", category: "Next.js", price: "", old_price: "",
     description: "", image_url: "", demo_url: "#", download_url: "", 
-    featuresText: "", galleryText: "", is_premium: false // galleryText যুক্ত হলো
+    featuresText: "", galleryText: "", is_premium: false
   });
 
   const fetchThemes = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("themes").select("*").order("created_at", { ascending: false });
-    if (!error && data) setThemes(data);
+    const { data } = await supabase.from("themes").select("*").order("created_at", { ascending: false });
+    if (data) setThemes(data);
     setLoading(false);
   };
 
@@ -34,7 +35,7 @@ export default function AdminThemesPage() {
     const { name, value, type, checked } = e.target;
     setForm(prev => {
       const updated = { ...prev, [name]: type === "checkbox" ? checked : value };
-      if (name === "title") {
+      if (name === "title" && !editingId) {
         updated.slug = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       }
       return updated;
@@ -57,26 +58,55 @@ export default function AdminThemesPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // কমা দিয়ে লেখা ফিচার এবং গ্যালারি লিংক অ্যারেতে রূপান্তর
     const featuresArray = form.featuresText.split(",").map(f => f.trim()).filter(f => f !== "");
     const galleryArray = form.galleryText.split(",").map(g => g.trim()).filter(g => g !== "");
 
-    const { error } = await supabase.from("themes").insert([{
+    const themeData = {
       title: form.title, slug: form.slug, category: form.category,
-      price: parseFloat(form.price), description: form.description,
-      image_url: form.image_url, demo_url: form.demo_url, download_url: form.download_url,
-      features: featuresArray, gallery_images: galleryArray, // এখানে গ্যালারি যুক্ত হলো
+      price: parseFloat(form.price), 
+      old_price: form.old_price ? parseFloat(form.old_price) : null,
+      description: form.description, image_url: form.image_url, demo_url: form.demo_url, download_url: form.download_url,
+      features: featuresArray, gallery_images: galleryArray, 
       technologies: [form.category], is_premium: form.is_premium
-    }]);
+    };
+
+    let error;
+    if (editingId) {
+      const { error: updateError } = await supabase.from("themes").update(themeData).eq("id", editingId);
+      error = updateError;
+    } else {
+      const { error: insertError } = await supabase.from("themes").insert([themeData]);
+      error = insertError;
+    }
 
     setIsSubmitting(false);
     if (error) { showAlert("Error: " + error.message, "error"); } 
     else {
-      showAlert("Theme added successfully!", "success");
-      setShowForm(false);
-      setForm({ title: "", slug: "", category: "Next.js", price: "", description: "", image_url: "", demo_url: "#", download_url: "", featuresText: "", galleryText: "", is_premium: false });
+      showAlert(editingId ? "Theme updated!" : "Theme added!", "success");
+      closeForm();
       fetchThemes();
     }
+  };
+
+  const handleEdit = (theme) => {
+    setForm({
+      title: theme.title, slug: theme.slug, category: theme.category, price: theme.price,
+      old_price: theme.old_price || "",
+      description: theme.description, image_url: theme.image_url, demo_url: theme.demo_url || "#", 
+      download_url: theme.download_url || "", 
+      featuresText: theme.features ? theme.features.join(", ") : "",
+      galleryText: theme.gallery_images ? theme.gallery_images.join(", ") : "",
+      is_premium: theme.is_premium
+    });
+    setEditingId(theme.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setForm({ title: "", slug: "", category: "Next.js", price: "", old_price: "", description: "", image_url: "", demo_url: "#", download_url: "", featuresText: "", galleryText: "", is_premium: false });
   };
 
   const handleDelete = async (id, imageUrl) => {
@@ -104,7 +134,7 @@ export default function AdminThemesPage() {
             <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Manage Themes</h1>
             <p className="text-brand-muted text-sm mt-1">{themes.length} themes in total</p>
           </div>
-          <button onClick={() => setShowForm(!showForm)} className="bg-brand-gold hover:bg-brand-gold-hover text-black px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] flex items-center gap-2 text-sm">
+          <button onClick={() => { closeForm(); setShowForm(!showForm); }} className="bg-brand-gold hover:bg-brand-gold-hover text-black px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] flex items-center gap-2 text-sm">
             {showForm ? <><FaTimes /> Cancel</> : <><FaPlus /> Add New Theme</>}
           </button>
         </div>
@@ -118,8 +148,8 @@ export default function AdminThemesPage() {
         <AnimatePresence>
           {showForm && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-8">
-              <form onSubmit={handleSubmit} className="bg-[#121214] border border-brand-gold/30 rounded-3xl p-6 md:p-8 shadow-[0_0_30px_rgba(245,158,11,0.05)]">
-                <h3 className="text-lg font-bold text-white mb-5">Add New Theme</h3>
+              <form onSubmit={handleSubmit} className="bg-[#121214] border border-brand-gold/30 rounded-3xl p-6 md:p-8 shadow-2xl">
+                <h3 className="text-lg font-bold text-white mb-5">{editingId ? "Edit Theme" : "Add New Theme"}</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                   <div><label className="block text-xs text-brand-muted mb-2">Title</label>
@@ -130,23 +160,25 @@ export default function AdminThemesPage() {
                     <select name="category" value={form.category} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold">
                       <option>Next.js</option><option>React</option><option>WordPress</option><option>HTML/CSS</option>
                     </select></div>
-                  <div><label className="block text-xs text-brand-muted mb-2">Price</label>
-                    <input type="number" name="price" value={form.price} onChange={handleChange} required step="0.01" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><label className="block text-xs text-brand-muted mb-2">Current Price (৳)</label>
+                      <input type="number" name="price" value={form.price} onChange={handleChange} required step="1" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                    <div><label className="block text-xs text-brand-muted mb-2">Old Price (৳)</label>
+                      <input type="number" name="old_price" value={form.old_price} onChange={handleChange} step="1" placeholder="Optional" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                  </div>
                 </div>
+
                 <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Description</label>
                   <textarea name="description" value={form.description} onChange={handleChange} required rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
+                
                 <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Features (Comma separated)</label>
-                  <textarea name="featuresText" value={form.featuresText} onChange={handleChange} rows="2" placeholder="Responsive, SEO Optimized, Dark Mode" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
-
-                {/* নতুন গ্যালারি ইনপুট */}
+                  <textarea name="featuresText" value={form.featuresText} onChange={handleChange} rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
+                
                 <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Gallery Images (Comma separated URLs)</label>
-                  <textarea name="galleryText" value={form.galleryText} onChange={handleChange} rows="2" placeholder="https://image1.jpg, https://image2.jpg" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
+                  <textarea name="galleryText" value={form.galleryText} onChange={handleChange} rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
 
                 <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-white mb-0.5">Premium Theme (PRO)</p>
-                    <p className="text-xs text-brand-muted">If enabled, this theme will show a "PRO" badge.</p>
-                  </div>
+                  <div><p className="text-sm font-bold text-white mb-0.5">Premium Theme (PRO)</p></div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" name="is_premium" checked={form.is_premium} onChange={handleChange} className="sr-only peer" />
                     <div className="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:bg-brand-gold after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
@@ -155,12 +187,9 @@ export default function AdminThemesPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                   <div><label className="block text-xs text-brand-muted mb-2">Demo URL</label>
-                    <input type="text" name="demo_url" value={form.demo_url} onChange={handleChange} placeholder="https://demo.com" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                    <input type="text" name="demo_url" value={form.demo_url} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                   <div><label className="block text-xs text-brand-muted mb-2">Download URL</label>
-                    <div className="relative">
-                      <FaLink className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
-                      <input type="text" name="download_url" value={form.download_url} onChange={handleChange} placeholder="https://drive.google.com/..." className="w-full bg-[#09090B] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
-                    </div></div>
+                    <input type="text" name="download_url" value={form.download_url} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                 </div>
 
                 <div className="mb-6">
@@ -185,9 +214,7 @@ export default function AdminThemesPage() {
         {loading ? (
           <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div></div>
         ) : filteredThemes.length === 0 ? (
-          <div className="text-center py-20 bg-[#121214] border border-white/5 rounded-3xl">
-            <p className="text-brand-muted">No themes found.</p>
-          </div>
+          <div className="text-center py-20 bg-[#121214] border border-white/5 rounded-3xl"><p className="text-brand-muted">No themes found.</p></div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredThemes.map(theme => (
@@ -197,16 +224,21 @@ export default function AdminThemesPage() {
                   <div className="absolute top-3 left-3">
                     {theme.is_premium ? <span className="bg-brand-gold text-black text-[10px] font-bold px-2 py-1 rounded">PRO</span> : <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">FREE</span>}
                   </div>
-                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-brand-gold font-bold px-3 py-1 rounded-full text-xs">${theme.price}</div>
+                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-brand-gold font-bold px-3 py-1 rounded-full text-xs">৳{theme.price}</div>
                 </div>
                 <div className="p-4 flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <h3 className="font-bold text-white mb-0.5 line-clamp-1">{theme.title}</h3>
                     <p className="text-xs text-brand-muted uppercase">{theme.category}</p>
                   </div>
-                  <button onClick={() => handleDelete(theme.id, theme.image_url)} className="w-9 h-9 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors flex-shrink-0 ml-2">
-                    <FaTrash size={12} />
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                    <button onClick={() => handleEdit(theme)} className="w-9 h-9 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-colors">
+                      <FaEdit size={12} />
+                    </button>
+                    <button onClick={() => handleDelete(theme.id, theme.image_url)} className="w-9 h-9 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors">
+                      <FaTrash size={12} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

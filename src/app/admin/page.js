@@ -6,7 +6,8 @@ import Link from "next/link";
 import { 
   FaSignOutAlt, FaLayerGroup, FaShoppingCart, FaStar, 
   FaHome, FaPlus, FaArrowRight, FaCrown, FaDollarSign, 
-  FaUsers, FaBoxOpen, FaClock, FaCheckCircle, FaChartLine
+  FaUsers, FaBoxOpen, FaClock, FaCheckCircle, FaChartLine,
+  FaCog, FaTag, FaFileAlt, FaImage 
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 
@@ -241,7 +242,9 @@ export default function AdminPage() {
 
         {/* Quick Actions */}
         <h2 className="text-xl font-bold text-white mb-5">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          
+          {/* Manage Themes */}
           <Link href="/admin/themes" className="group bg-[#121214] border border-white/5 hover:border-brand-gold/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
             <div className="w-12 h-12 bg-brand-gold/10 text-brand-gold rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
               <FaPlus />
@@ -252,6 +255,7 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Manage Orders */}
           <Link href="/admin/orders" className="group bg-[#121214] border border-white/5 hover:border-yellow-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
             <div className="w-12 h-12 bg-yellow-500/10 text-yellow-500 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
               <FaShoppingCart />
@@ -262,6 +266,7 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Manage Reviews */}
           <Link href="/admin/reviews" className="group bg-[#121214] border border-white/5 hover:border-purple-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
             <div className="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
               <FaStar />
@@ -271,6 +276,51 @@ export default function AdminPage() {
               <p className="text-brand-muted text-xs">Moderate feedback</p>
             </div>
           </Link>
+
+          {/* Site Settings */}
+          <Link href="/admin/settings" className="group bg-[#121214] border border-white/5 hover:border-cyan-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-cyan-500/10 text-cyan-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+              <FaCog />
+            </div>
+            <div>
+              <h3 className="font-bold text-white">Site Settings</h3>
+              <p className="text-brand-muted text-xs">Contact info & socials</p>
+            </div>
+          </Link>
+
+          {/* Manage Pricing */}
+          <Link href="/admin/pricing" className="group bg-[#121214] border border-white/5 hover:border-green-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-green-500/10 text-green-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+              <FaTag />
+            </div>
+            <div>
+              <h3 className="font-bold text-white">Manage Pricing</h3>
+              <p className="text-brand-muted text-xs">Update pricing plans</p>
+            </div>
+          </Link>
+
+          {/* Manage Pages */}
+          <Link href="/admin/pages" className="group bg-[#121214] border border-white/5 hover:border-pink-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-pink-500/10 text-pink-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+              <FaFileAlt />
+            </div>
+            <div>
+              <h3 className="font-bold text-white">Manage Pages</h3>
+              <p className="text-brand-muted text-xs">Privacy & Terms</p>
+            </div>
+          </Link>
+
+          {/* Hero Slider (NEW) */}
+          <Link href="/admin/banners" className="group bg-[#121214] border border-white/5 hover:border-orange-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-orange-500/10 text-orange-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+              <FaImage />
+            </div>
+            <div>
+              <h3 className="font-bold text-white">Hero Slider</h3>
+              <p className="text-brand-muted text-xs">Manage homepage banners</p>
+            </div>
+          </Link>
+
         </div>
 
       </div>

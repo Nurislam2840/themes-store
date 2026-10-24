@@ -26,7 +26,7 @@ export default async function ThemeDetailsPage({ params }) {
 
   const features = theme.features || [];
   const technologies = theme.technologies || [];
-  const galleryImages = theme.gallery_images || []; // গ্যালারি অ্যারে
+  const galleryImages = theme.gallery_images || [];
 
   return (
     <main className="min-h-screen bg-[#09090B] text-white flex flex-col relative overflow-hidden">
@@ -39,15 +39,10 @@ export default async function ThemeDetailsPage({ params }) {
           <FaArrowLeft /> Back to Themes
         </Link>
 
-        {/* হিরো সেকশন */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
           
           <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl group">
-            <img 
-              src={theme.image_url || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop"} 
-              alt={theme.title} 
-              className="w-full h-[350px] md:h-[500px] object-cover group-hover:scale-105 transition-transform duration-700" 
-            />
+            <img src={theme.image_url || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop"} alt={theme.title} className="w-full h-[350px] md:h-[500px] object-cover group-hover:scale-105 transition-transform duration-700" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#09090B] via-transparent to-transparent opacity-80 pointer-events-none"></div>
             
             <div className="absolute top-6 left-6 flex flex-wrap gap-2 z-20">
@@ -58,7 +53,6 @@ export default async function ThemeDetailsPage({ params }) {
               ) : (
                 <span className="bg-green-500 text-white text-xs font-extrabold px-4 py-2 rounded-full shadow-lg">FREE</span>
               )}
-              
               <div className="bg-black/60 backdrop-blur-md border border-white/10 text-brand-gold text-xs font-bold px-4 py-2 rounded-full flex items-center gap-2">
                 <FaRocket /> Latest Version
               </div>
@@ -69,11 +63,23 @@ export default async function ThemeDetailsPage({ params }) {
             <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-3">{theme.category}</p>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight">{theme.title}</h1>
             
-            <div className="flex items-center gap-4 mb-6 border-b border-white/5 pb-6">
-              <span className="text-5xl font-extrabold text-white">
-                <span className="text-lg text-brand-muted mr-1 align-top">USD</span>${theme.price}
-              </span>
-              <span className="bg-green-500/10 text-green-400 text-xs px-4 py-2 rounded-full border border-green-500/20 flex items-center gap-2 font-bold">
+            <div className="flex items-center gap-6 mb-6 border-b border-white/5 pb-6">
+              <div className="flex flex-col">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-5xl font-extrabold text-white">
+                    <span className="text-2xl text-brand-muted mr-1">৳</span>{theme.price}
+                  </span>
+                  {theme.old_price && theme.old_price > theme.price && (
+                    <span className="text-xl text-brand-muted line-through">৳{theme.old_price}</span>
+                  )}
+                </div>
+                {theme.old_price && theme.old_price > theme.price && (
+                  <span className="text-green-400 font-bold text-sm mt-1">
+                    You save ৳{theme.old_price - theme.price} ({Math.round(((theme.old_price - theme.price) / theme.old_price) * 100)}% OFF)
+                  </span>
+                )}
+              </div>
+              <span className="bg-green-500/10 text-green-400 text-xs px-4 py-2 rounded-full border border-green-500/20 flex items-center gap-2 font-bold self-start mt-2">
                 <FaCheckCircle /> Lifetime Access
               </span>
             </div>
@@ -88,7 +94,6 @@ export default async function ThemeDetailsPage({ params }) {
           </div>
         </div>
 
-        {/* প্রফেশনাল স্পেসিফিকেশন গ্রিড */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {[
             { icon: <FaFileArchive />, label: "File Included", value: "HTML, CSS, JS, Figma" },
@@ -104,7 +109,6 @@ export default async function ThemeDetailsPage({ params }) {
           ))}
         </div>
 
-        {/* ফিচার ও টেকনোলজি */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div className="bg-[#121214] border border-white/5 rounded-3xl p-8">
             <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
@@ -134,7 +138,6 @@ export default async function ThemeDetailsPage({ params }) {
 
         <ToolsSection technologies={technologies} />
 
-        {/* নতুন: গ্যালারি সেকশন */}
         {galleryImages.length > 0 && (
           <div className="bg-[#121214] border border-white/5 rounded-3xl p-8 mb-8">
             <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
@@ -151,7 +154,6 @@ export default async function ThemeDetailsPage({ params }) {
           </div>
         )}
 
-        {/* এক্সট্রা ফিচার */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
           <div className="bg-[#121214] border border-white/5 rounded-2xl p-6 text-center hover:border-brand-gold/20 transition-colors"><FaMobileAlt className="text-brand-gold text-3xl mx-auto mb-3" /><p className="text-sm font-bold text-white">Fully Responsive</p></div>
           <div className="bg-[#121214] border border-white/5 rounded-2xl p-6 text-center hover:border-green-500/20 transition-colors"><FaSearch className="text-green-400 text-3xl mx-auto mb-3" /><p className="text-sm font-bold text-white">SEO Optimized</p></div>
