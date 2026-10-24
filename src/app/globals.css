@@ -8,87 +8,22 @@
   --color-brand-gold-hover: #D97706;
   --color-brand-light: #FAFAFA;
   --color-brand-muted: #A1A1AA;
-
   --background-image-gold-gradient: linear-gradient(to right, #F59E0B, #FCD34D);
 }
 
-body {
+/* 🚨 সবচেয়ে জরুরি ফিক্স: আড়াআড়ি স্ক্রল বন্ধ করা */
+html, body {
   background-color: #09090B;
   color: #FAFAFA;
   margin: 0;
   padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important; 
 }
 
-/* =========================================
-   কাস্টম স্ক্রলবার (কার্ট ও অন্যান্য জায়গায়)
-   ========================================= */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #27272A;
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #F59E0B;
-}
-
-/* =========================================
-   গোল্ডেন গ্লো ও শ্যাডো ইফেক্ট
-   ========================================= */
-.glow-gold {
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
-}
-.glow-gold:hover {
-  box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
-}
-
-/* =========================================
-   কার্ড হোভার ইফেক্ট
-   ========================================= */
-.premium-card {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.premium-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-/* =========================================
-   টেক্সট সিলেকশন কালার
-   ========================================= */
-::selection {
-  background-color: #F59E0B;
-  color: #09090B;
-}
-
-/* =========================================
-   ইনপুট অটোফিল ব্যাকগ্রাউন্ড ফিক্স (Chrome)
-   ========================================= */
-input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
-input:-webkit-autofill:active{
-    -webkit-box-shadow: 0 0 0 30px #09090B inset !important;
-    -webkit-text-fill-color: white !important;
-    transition: background-color 5000s ease-in-out 0s;
-}
-
-/* =========================================
-   পেজ ট্রানজিশন ফেড-ইন ইফেক্ট
-   ========================================= */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.group:hover .glow-effect {
-  box-shadow: 0 0 40px rgba(245, 158, 11, 0.4);
-}
+/* কাস্টম স্ক্রলবার */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #27272A; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #F59E0B; }

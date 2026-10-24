@@ -25,21 +25,22 @@ export default function HeroBanner() {
 
   if (loading) {
     return (
-      <div className="w-full h-[420px] md:aspect-video flex justify-center items-center bg-brand-dark">
+      <div className="w-full h-[400px] md:h-[500px] flex justify-center items-center bg-brand-dark">
         <FaSpinner className="text-4xl text-brand-gold animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="relative w-full overflow-hidden bg-brand-dark">
+    <div className="relative w-full max-w-[100vw] overflow-hidden bg-brand-dark">
       <Swiper
         modules={[Autoplay, Pagination, EffectFade]}
         effect="fade"
         autoplay={{ delay: 6000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         loop={true}
-        className="w-full h-[450px] sm:h-[500px] md:aspect-video md:h-auto" 
+        // 🚨 মোবাইলে উচ্চতা 400px এবং overflow-hidden দেওয়া হলো
+        className="w-full h-[400px] sm:h-[450px] md:h-[500px] lg:h-[600px] overflow-hidden" 
       >
         {banners.map((banner) => (
           <SwiperSlide key={banner.id}>
@@ -56,12 +57,12 @@ export default function HeroBanner() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#09090B] via-transparent to-transparent"></div>
                 </div>
 
-                <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pt-20 md:pt-0">
+                {/* 🚨 প্যাডিং ঠিক করা হলো যাতে টেক্সট নেভবারে না লাগে */}
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pt-10 md:pt-0">
                   <div className="max-w-2xl text-left">
                     {isActive && (
                       <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
                         
-                        {/* Badge */}
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-gold/20 backdrop-blur-md border border-brand-gold/30 text-brand-gold text-[10px] md:text-xs font-bold uppercase tracking-widest mb-4">
                           <FaCheckCircle size={10} />
                           <span>Premium Quality Guaranteed</span>
