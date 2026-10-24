@@ -77,7 +77,7 @@ export default function Navbar() {
       <nav className="fixed top-0 w-full z-50 bg-[#09090B]/80 backdrop-blur-2xl border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <div className="max-w-7xl mx-auto px-3 md:px-6 h-20 flex items-center justify-between">
 
-          <Link href="/" className="flex items-center gap-2 md:gap-3 group z-50">
+          <Link href="/" className="flex items-center gap-2 md:gap-3 group z-50 shrink-0">
             <div className="relative w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-brand-gold to-yellow-300 flex items-center justify-center text-brand-dark font-black text-lg md:text-xl shadow-[0_0_20px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-transform">
               T
             </div>
@@ -117,13 +117,13 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Actions (Compact for Mobile) */}
-          <div className="flex items-center gap-1 sm:gap-3">
-            <button onClick={() => setIsSearchOpen(true)} className="p-1.5 md:p-2 text-brand-muted hover:text-white transition-all">
+          {/* Actions (Mobile Compact) */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <button onClick={() => setIsSearchOpen(true)} className="p-1.5 text-brand-muted hover:text-white transition-all">
               <FaSearch size={16} className="md:w-[18px] md:h-[18px]" />
             </button>
 
-            <Link href="/wishlist" className="relative p-1.5 md:p-2 text-brand-muted hover:text-brand-gold transition-all">
+            <Link href="/wishlist" className="relative p-1.5 text-brand-muted hover:text-brand-gold transition-all">
               <FaHeart size={16} className="md:w-[18px] md:h-[18px]" />
               {wishCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-brand-gold text-black text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
@@ -134,10 +134,10 @@ export default function Navbar() {
 
             <CartDrawer cartCount={cartCount} />
 
-            <div className="relative ml-1 md:ml-2">
+            <div className="relative">
               {user ? (
                 <div className="relative">
-                  <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-1.5 py-1.5 md:px-3 md:py-2 rounded-full text-sm font-semibold text-white transition-all">
+                  <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-2 bg-white/5 border border-white/10 rounded-full text-white transition-all">
                     <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-gradient-to-br from-brand-gold to-yellow-300 text-black flex items-center justify-center text-[10px] font-bold">
                       {user.email.charAt(0).toUpperCase()}
                     </div>
@@ -158,15 +158,15 @@ export default function Navbar() {
                   )}
                 </div>
               ) : (
-                <Link href="/account/login" className="flex items-center gap-1.5 bg-brand-gold text-black px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                  <FaUser size={10} />
-                  <span className="hidden sm:block">Login</span>
+                <Link href="/account/login" className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-5 md:py-2.5 bg-brand-gold text-black rounded-full text-xs md:text-sm font-bold transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                  <FaUser size={12} className="md:mr-2" />
+                  <span className="hidden md:block">Login</span>
                 </Link>
               )}
             </div>
 
             {/* Mobile Menu Button */}
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-1.5 text-white ml-1">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-1.5 text-white">
               {isMobileMenuOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
             </button>
           </div>

@@ -12,10 +12,15 @@ export default function CartDrawer({ cartCount }) {
 
   return (
     <>
-      {/* Compact Trigger Button for Mobile */}
-      <button onClick={() => setOpen(true)} className="relative flex items-center gap-1 md:gap-2 bg-white/5 border border-white/10 px-2 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-white transition-all">
-        <FaShoppingBag className="text-brand-gold text-sm md:text-base" /> 
-        <span className="hidden sm:block">Cart</span> ({cartCount})
+      {/* Mobile Compact Cart Button */}
+      <button onClick={() => setOpen(true)} className="relative p-1.5 md:px-4 md:py-2 md:bg-white/5 md:border md:border-white/10 md:rounded-full text-brand-muted hover:text-brand-gold md:text-white transition-all flex items-center gap-2">
+        <FaShoppingBag size={16} className="md:text-brand-gold text-current md:text-base" /> 
+        <span className="hidden md:block font-semibold">Cart</span>
+        {cartCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 md:static md:bg-transparent md:text-white bg-brand-gold text-black text-[9px] md:text-sm font-bold rounded-full w-3.5 h-3.5 md:w-auto md:h-auto flex items-center justify-center md:ml-1">
+            ({cartCount})
+          </span>
+        )}
       </button>
 
       <AnimatePresence>
@@ -28,7 +33,6 @@ export default function CartDrawer({ cartCount }) {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed top-0 right-0 h-[100dvh] w-full sm:max-w-md bg-[#0E0E11]/95 backdrop-blur-2xl border-l border-white/10 z-[101] flex flex-col shadow-2xl"
             >
-              {/* Header */}
               <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-white/5 bg-gradient-to-r from-[#121214] to-[#0E0E11]">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center"><FaShoppingBag className="text-brand-gold" size={18} /></div>
@@ -40,7 +44,6 @@ export default function CartDrawer({ cartCount }) {
                 <button onClick={() => setOpen(false)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-brand-muted hover:text-white transition-all"><FaTimes size={16} /></button>
               </div>
 
-              {/* Body */}
               <div className="flex-1 overflow-y-auto p-6 bg-[#0E0E11]">
                 {!isHydrated ? (
                   <div className="flex justify-center py-20"><FaSpinner className="animate-spin text-4xl text-brand-gold" /></div>
@@ -86,7 +89,6 @@ export default function CartDrawer({ cartCount }) {
                 )}
               </div>
 
-              {/* Footer */}
               {cart.length > 0 && (
                 <div className="flex-shrink-0 border-t border-white/5 p-6 bg-[#0E0E11] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
                   <div className="space-y-2 mb-5">
