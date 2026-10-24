@@ -7,7 +7,7 @@ import {
   FaSignOutAlt, FaLayerGroup, FaShoppingCart, FaStar, 
   FaHome, FaPlus, FaArrowRight, FaCrown, FaDollarSign, 
   FaUsers, FaBoxOpen, FaClock, FaCheckCircle, FaChartLine,
-  FaCog, FaTag, FaFileAlt, FaImage 
+  FaCog, FaTag, FaFileAlt, FaImage, FaChartBar, FaList 
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 
@@ -31,7 +31,6 @@ export default function AdminPage() {
 
       setUser(user);
 
-      // Parallel ডেটা ফেচ
       const [
         themesCount, ordersCount, pendingCount, reviewsCount, 
         revenueData, customersData, recentOrdersData
@@ -82,7 +81,6 @@ export default function AdminPage() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         
-        {/* হেডার */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 border-b border-white/5 pb-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 text-brand-gold text-xs font-bold tracking-widest mb-4 border border-brand-gold/20">
@@ -102,10 +100,9 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* টপ স্ট্যাটস (Revenue, Orders, Customers, Themes) */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
           
-          {/* Total Revenue */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="relative bg-gradient-to-br from-brand-gold/15 via-[#121214] to-[#121214] border border-brand-gold/30 rounded-3xl p-6 overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-gold/10 blur-3xl rounded-full"></div>
@@ -116,10 +113,9 @@ export default function AdminPage() {
               <FaChartLine className="text-brand-gold/30 text-xl" />
             </div>
             <p className="text-brand-muted text-xs font-semibold uppercase tracking-wider mb-1 relative z-10">Total Revenue</p>
-            <p className="text-3xl md:text-4xl font-extrabold text-brand-gold relative z-10">${stats.revenue.toFixed(2)}</p>
+            <p className="text-3xl md:text-4xl font-extrabold text-brand-gold relative z-10">৳{stats.revenue.toFixed(2)}</p>
           </motion.div>
 
-          {/* Total Orders */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="relative bg-[#121214] border border-white/5 rounded-3xl p-6 overflow-hidden group hover:border-blue-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4 relative z-10">
@@ -135,7 +131,6 @@ export default function AdminPage() {
             </p>
           </motion.div>
 
-          {/* Customers */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
             className="relative bg-[#121214] border border-white/5 rounded-3xl p-6 overflow-hidden group hover:border-purple-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4 relative z-10">
@@ -148,7 +143,6 @@ export default function AdminPage() {
             <p className="text-3xl md:text-4xl font-extrabold text-white relative z-10">{stats.customers}</p>
           </motion.div>
 
-          {/* Total Themes */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
             className="relative bg-[#121214] border border-white/5 rounded-3xl p-6 overflow-hidden group hover:border-green-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4 relative z-10">
@@ -166,7 +160,6 @@ export default function AdminPage() {
         {/* Recent Orders */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
           
-          {/* Orders Table */}
           <div className="lg:col-span-2 bg-[#121214] border border-white/5 rounded-3xl overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-white/5">
               <div>
@@ -200,7 +193,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-3">
-                      <p className="text-sm font-bold text-brand-gold">${order.price}</p>
+                      <p className="text-sm font-bold text-brand-gold">৳{order.price}</p>
                       <p className="text-[10px] text-brand-muted">{new Date(order.created_at).toLocaleDateString('en-GB')}</p>
                     </div>
                   </div>
@@ -209,10 +202,7 @@ export default function AdminPage() {
             )}
           </div>
 
-          {/* Pending & Reviews Card */}
           <div className="space-y-6">
-            
-            {/* Pending */}
             <Link href="/admin/orders" className="block bg-gradient-to-br from-yellow-500/10 to-[#121214] border border-yellow-500/20 rounded-3xl p-6 hover:border-yellow-500/50 transition-colors group">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-12 h-12 bg-yellow-500/20 text-yellow-400 rounded-2xl flex items-center justify-center">
@@ -225,7 +215,6 @@ export default function AdminPage() {
               <p className="text-xs text-brand-muted mt-1">Waiting for approval</p>
             </Link>
 
-            {/* Reviews */}
             <Link href="/admin/reviews" className="block bg-gradient-to-br from-purple-500/10 to-[#121214] border border-purple-500/20 rounded-3xl p-6 hover:border-purple-500/50 transition-colors group">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center">
@@ -244,81 +233,49 @@ export default function AdminPage() {
         <h2 className="text-xl font-bold text-white mb-5">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           
-          {/* Manage Themes */}
           <Link href="/admin/themes" className="group bg-[#121214] border border-white/5 hover:border-brand-gold/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-brand-gold/10 text-brand-gold rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-              <FaPlus />
-            </div>
-            <div>
-              <h3 className="font-bold text-white">Manage Themes</h3>
-              <p className="text-brand-muted text-xs">Add / edit themes</p>
-            </div>
+            <div className="w-12 h-12 bg-brand-gold/10 text-brand-gold rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaPlus /></div>
+            <div><h3 className="font-bold text-white">Manage Themes</h3><p className="text-brand-muted text-xs">Add / edit themes</p></div>
           </Link>
 
-          {/* Manage Orders */}
           <Link href="/admin/orders" className="group bg-[#121214] border border-white/5 hover:border-yellow-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-yellow-500/10 text-yellow-500 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-              <FaShoppingCart />
-            </div>
-            <div>
-              <h3 className="font-bold text-white">Manage Orders</h3>
-              <p className="text-brand-muted text-xs">Approve purchases</p>
-            </div>
+            <div className="w-12 h-12 bg-yellow-500/10 text-yellow-500 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaShoppingCart /></div>
+            <div><h3 className="font-bold text-white">Manage Orders</h3><p className="text-brand-muted text-xs">Approve purchases</p></div>
           </Link>
 
-          {/* Manage Reviews */}
           <Link href="/admin/reviews" className="group bg-[#121214] border border-white/5 hover:border-purple-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-              <FaStar />
-            </div>
-            <div>
-              <h3 className="font-bold text-white">Manage Reviews</h3>
-              <p className="text-brand-muted text-xs">Moderate feedback</p>
-            </div>
+            <div className="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaStar /></div>
+            <div><h3 className="font-bold text-white">Manage Reviews</h3><p className="text-brand-muted text-xs">Moderate feedback</p></div>
           </Link>
 
-          {/* Site Settings */}
           <Link href="/admin/settings" className="group bg-[#121214] border border-white/5 hover:border-cyan-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-cyan-500/10 text-cyan-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-              <FaCog />
-            </div>
-            <div>
-              <h3 className="font-bold text-white">Site Settings</h3>
-              <p className="text-brand-muted text-xs">Contact info & socials</p>
-            </div>
+            <div className="w-12 h-12 bg-cyan-500/10 text-cyan-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaCog /></div>
+            <div><h3 className="font-bold text-white">Site Settings</h3><p className="text-brand-muted text-xs">Contact info & socials</p></div>
           </Link>
 
-          {/* Manage Pricing */}
           <Link href="/admin/pricing" className="group bg-[#121214] border border-white/5 hover:border-green-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-green-500/10 text-green-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-              <FaTag />
-            </div>
-            <div>
-              <h3 className="font-bold text-white">Manage Pricing</h3>
-              <p className="text-brand-muted text-xs">Update pricing plans</p>
-            </div>
+            <div className="w-12 h-12 bg-green-500/10 text-green-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaTag /></div>
+            <div><h3 className="font-bold text-white">Manage Pricing</h3><p className="text-brand-muted text-xs">Update pricing plans</p></div>
           </Link>
 
-          {/* Manage Pages */}
           <Link href="/admin/pages" className="group bg-[#121214] border border-white/5 hover:border-pink-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-pink-500/10 text-pink-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-              <FaFileAlt />
-            </div>
-            <div>
-              <h3 className="font-bold text-white">Manage Pages</h3>
-              <p className="text-brand-muted text-xs">Privacy & Terms</p>
-            </div>
+            <div className="w-12 h-12 bg-pink-500/10 text-pink-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaFileAlt /></div>
+            <div><h3 className="font-bold text-white">Manage Pages</h3><p className="text-brand-muted text-xs">Privacy & Terms</p></div>
           </Link>
 
-          {/* Hero Slider (NEW) */}
           <Link href="/admin/banners" className="group bg-[#121214] border border-white/5 hover:border-orange-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-orange-500/10 text-orange-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-              <FaImage />
-            </div>
-            <div>
-              <h3 className="font-bold text-white">Hero Slider</h3>
-              <p className="text-brand-muted text-xs">Manage homepage banners</p>
-            </div>
+            <div className="w-12 h-12 bg-orange-500/10 text-orange-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaImage /></div>
+            <div><h3 className="font-bold text-white">Hero Slider</h3><p className="text-brand-muted text-xs">Manage homepage banners</p></div>
+          </Link>
+
+          <Link href="/admin/stats" className="group bg-[#121214] border border-white/5 hover:border-blue-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaChartBar /></div>
+            <div><h3 className="font-bold text-white">Stats Section</h3><p className="text-brand-muted text-xs">Manage counters</p></div>
+          </Link>
+
+          <Link href="/admin/features" className="group bg-[#121214] border border-white/5 hover:border-indigo-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaList /></div>
+            <div><h3 className="font-bold text-white">Why Choose Us</h3><p className="text-brand-muted text-xs">Manage features</p></div>
           </Link>
 
         </div>
