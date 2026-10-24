@@ -12,13 +12,12 @@ export default function CartDrawer({ cartCount }) {
 
   return (
     <>
-      {/* Mobile Compact Cart Button */}
-      <button onClick={() => setOpen(true)} className="relative p-1.5 md:px-4 md:py-2 md:bg-white/5 md:border md:border-white/10 md:rounded-full text-brand-muted hover:text-brand-gold md:text-white transition-all flex items-center gap-2">
-        <FaShoppingBag size={16} className="md:text-brand-gold text-current md:text-base" /> 
-        <span className="hidden md:block font-semibold">Cart</span>
+      {/* Cart Trigger Button (Icon only on mobile) */}
+      <button onClick={() => setOpen(true)} className="relative p-1.5 text-brand-muted hover:text-brand-gold transition-all">
+        <FaShoppingBag size={18} />
         {cartCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 md:static md:bg-transparent md:text-white bg-brand-gold text-black text-[9px] md:text-sm font-bold rounded-full w-3.5 h-3.5 md:w-auto md:h-auto flex items-center justify-center md:ml-1">
-            ({cartCount})
+          <span className="absolute top-0 right-0 bg-brand-gold text-black text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+            {cartCount}
           </span>
         )}
       </button>

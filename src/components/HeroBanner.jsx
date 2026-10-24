@@ -56,12 +56,12 @@ export default function HeroBanner() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#09090B] via-transparent to-transparent"></div>
                 </div>
 
-                <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-12 pt-10 md:pt-0">
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pt-20 md:pt-0">
                   <div className="max-w-2xl text-left">
                     {isActive && (
                       <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
                         
-                        {/* Badge - এটি আর নেভবারের নিচে লুকাবে না */}
+                        {/* Badge */}
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-gold/20 backdrop-blur-md border border-brand-gold/30 text-brand-gold text-[10px] md:text-xs font-bold uppercase tracking-widest mb-4">
                           <FaCheckCircle size={10} />
                           <span>Premium Quality Guaranteed</span>

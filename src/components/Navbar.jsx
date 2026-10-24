@@ -75,7 +75,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="fixed top-0 w-full z-50 bg-[#09090B]/80 backdrop-blur-2xl border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-        <div className="max-w-7xl mx-auto px-3 md:px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-20 flex items-center justify-between">
 
           <Link href="/" className="flex items-center gap-2 md:gap-3 group z-50 shrink-0">
             <div className="relative w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-brand-gold to-yellow-300 flex items-center justify-center text-brand-dark font-black text-lg md:text-xl shadow-[0_0_20px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-transform">
@@ -88,9 +88,7 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-10">
-            <Link href="/" className={`relative text-sm font-semibold tracking-wide transition-colors hover:text-white ${pathname === "/" ? "text-brand-gold" : "text-brand-muted"}`}>
-              Home
-            </Link>
+            <Link href="/" className={`relative text-sm font-semibold tracking-wide transition-colors hover:text-white ${pathname === "/" ? "text-brand-gold" : "text-brand-muted"}`}>Home</Link>
             <div className="relative" onMouseEnter={() => setIsThemesHovered(true)} onMouseLeave={() => setIsThemesHovered(false)}>
               <Link href="/themes" className={`flex items-center gap-1.5 text-sm font-semibold tracking-wide transition-colors ${isThemesHovered || pathname.includes("/themes") ? "text-brand-gold" : "text-brand-muted"}`}>
                 Themes <FaChevronDown size={10} className={`transition-transform duration-300 ${isThemesHovered ? "rotate-180" : ""}`} />
@@ -117,16 +115,16 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Actions (Mobile Compact) */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
+          {/* Mobile Compact Actions */}
+          <div className="flex items-center gap-1 sm:gap-3">
             <button onClick={() => setIsSearchOpen(true)} className="p-1.5 text-brand-muted hover:text-white transition-all">
-              <FaSearch size={16} className="md:w-[18px] md:h-[18px]" />
+              <FaSearch size={18} />
             </button>
 
             <Link href="/wishlist" className="relative p-1.5 text-brand-muted hover:text-brand-gold transition-all">
-              <FaHeart size={16} className="md:w-[18px] md:h-[18px]" />
+              <FaHeart size={18} />
               {wishCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-brand-gold text-black text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                <span className="absolute top-0 right-0 bg-brand-gold text-black text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
                   {wishCount}
                 </span>
               )}
@@ -137,11 +135,12 @@ export default function Navbar() {
             <div className="relative">
               {user ? (
                 <div className="relative">
-                  <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-2 bg-white/5 border border-white/10 rounded-full text-white transition-all">
-                    <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-gradient-to-br from-brand-gold to-yellow-300 text-black flex items-center justify-center text-[10px] font-bold">
+                  <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center justify-center p-1.5 text-brand-muted hover:text-white transition-all">
+                    <div className="w-6 h-6 rounded-full bg-brand-gold text-black flex items-center justify-center text-[10px] font-bold">
                       {user.email.charAt(0).toUpperCase()}
                     </div>
                   </button>
+                  {/* Dropdown Menu */}
                   {isMenuOpen && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute right-0 mt-3 w-56 bg-[#121214]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl py-2 z-50">
                        <div className="px-4 py-2 border-b border-white/5 mb-2">
@@ -158,16 +157,15 @@ export default function Navbar() {
                   )}
                 </div>
               ) : (
-                <Link href="/account/login" className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-5 md:py-2.5 bg-brand-gold text-black rounded-full text-xs md:text-sm font-bold transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                  <FaUser size={12} className="md:mr-2" />
-                  <span className="hidden md:block">Login</span>
+                <Link href="/account/login" className="flex items-center justify-center p-1.5 text-brand-muted hover:text-brand-gold transition-all">
+                  <FaUser size={18} />
                 </Link>
               )}
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Hamburger Menu Button */}
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-1.5 text-white">
-              {isMobileMenuOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
+              {isMobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
             </button>
           </div>
         </div>
