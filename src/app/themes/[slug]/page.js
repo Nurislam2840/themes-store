@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import {
   FaCheckCircle, FaExternalLinkAlt, FaArrowLeft, FaCode, FaLayerGroup, 
   FaMobileAlt, FaSearch, FaMoon, FaRocket, FaFileArchive, FaChrome, 
-  FaInfinity, FaCalendarAlt, FaShieldAlt, FaCrown, FaCheck
+  FaInfinity, FaCalendarAlt, FaShieldAlt, FaCrown, FaCheck, FaTools
 } from "react-icons/fa";
 import ThemeDetailActions from "@/components/ThemeDetailActions";
 import ReviewSection from "@/components/ReviewSection";
@@ -35,7 +35,7 @@ export default async function ThemeDetailsPage({ params }) {
   const technologies = theme.technologies || [];
   const galleryImages = theme.gallery_images || [];
   
-  // Files Included কে কমা দিয়ে ভাগ করা (যদি থাকে)
+  // Files Included কে কমা দিয়ে ভাগ করা
   const filesIncluded = (theme.file_included || "HTML, CSS, JS").split(',').map(f => f.trim());
 
   return (
@@ -115,37 +115,41 @@ export default async function ThemeDetailsPage({ params }) {
           </div>
         </div>
 
-        {/* ৩ কলামের ডিটেইলস সেকশন (Features, Tech, Tools) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-start">
+        {/* ৩ কলামের ডিটেইলস গ্রিড (Features, Tech, Tools) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
           
-          {/* Key Features */}
-          <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6">
+          {/* কলাম ১: Key Features */}
+          <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-6 border-b border-gray-200 dark:border-white/5 pb-4">
               <div className="w-10 h-10 bg-brand-gold/10 text-brand-gold rounded-xl flex items-center justify-center text-lg"><FaLayerGroup /></div>
               <div><h2 className="text-lg font-bold text-gray-900 dark:text-white">Key Features</h2></div>
             </div>
-            <ul className="space-y-3">
-              {features.map((feature, i) => (
+            <ul className="space-y-3 flex-grow">
+              {features.length > 0 ? features.map((feature, i) => (
                 <li key={i} className="flex items-start gap-3 text-sm text-gray-600 dark:text-brand-muted">
                   <FaCheckCircle className="text-brand-gold mt-0.5 flex-shrink-0" size={14} />
-                  <span>{feature}</span>
+                  <span className="leading-relaxed">{feature}</span>
                 </li>
-              ))}
+              )) : (
+                <p className="text-gray-500 text-sm">No features listed.</p>
+              )}
             </ul>
           </div>
 
-          {/* Technology Stack */}
-          <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6">
+          {/* কলাম ২: Technology Stack */}
+          <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-6 border-b border-gray-200 dark:border-white/5 pb-4">
               <div className="w-10 h-10 bg-cyan-500/10 text-cyan-500 rounded-xl flex items-center justify-center text-lg"><FaCode /></div>
               <div><h2 className="text-lg font-bold text-gray-900 dark:text-white">Tech Stack</h2></div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {technologies.map((tech, i) => (
+            <div className="flex flex-wrap gap-2 flex-grow content-start">
+              {technologies.length > 0 ? technologies.map((tech, i) => (
                 <span key={i} className="bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white px-3 py-1.5 rounded-lg text-xs font-semibold">
                   {tech}
                 </span>
-              ))}
+              )) : (
+                <p className="text-gray-500 text-sm">No tech stack listed.</p>
+              )}
             </div>
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-white/5 space-y-2">
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-brand-muted"><FaCalendarAlt className="text-brand-gold" /> Updated: {new Date().toLocaleDateString()}</div>
@@ -153,26 +157,28 @@ export default async function ThemeDetailsPage({ params }) {
             </div>
           </div>
 
-          {/* Tools & Software (আইকনসহ) */}
-          <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6">
+          {/* কলাম ৩: Tools & Software */}
+          <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-6 border-b border-gray-200 dark:border-white/5 pb-4">
-              <div className="w-10 h-10 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center text-lg"><FaLayerGroup /></div>
+              <div className="w-10 h-10 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center text-lg"><FaTools /></div>
               <div><h2 className="text-lg font-bold text-gray-900 dark:text-white">Tools Used</h2></div>
             </div>
-            <div className="grid grid-cols-1 gap-3">
-               {technologies.map((tech, i) => (
+            <div className="grid grid-cols-1 gap-3 flex-grow content-start">
+               {technologies.length > 0 ? technologies.map((tech, i) => (
                  <div key={i} className="flex items-center gap-3 bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 rounded-xl p-2.5">
-                   <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-brand-gold">
+                   <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-brand-gold flex-shrink-0">
                      <FaCode size={14} />
                    </div>
                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{tech}</span>
                  </div>
-               ))}
+               )) : (
+                 <p className="text-gray-500 text-sm">No tools listed.</p>
+               )}
             </div>
           </div>
         </div>
 
-        {/* File Included Details (নতুন প্রফেশনাল লুক) */}
+        {/* File Included Details (প্রফেশনাল ব্যাজ) */}
         <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 mb-8">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">File Included</h3>
           <div className="flex flex-wrap gap-3">
