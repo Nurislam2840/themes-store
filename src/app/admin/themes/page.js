@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
-import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaSearch, FaEdit, FaCode, FaFileArchive, FaChrome } from "react-icons/fa";
+import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaSearch, FaEdit, FaFileArchive, FaChrome, FaCloudUploadAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminThemesPage() {
@@ -14,14 +14,14 @@ export default function AdminThemesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isGalleryUploading, setIsGalleryUploading] = useState(false);
+  const [isFileUploading, setIsFileUploading] = useState(false); // নতুন স্টেট
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
 
-  // ফর্মে সব ফিল্ড যোগ করা হলো
   const [form, setForm] = useState({
     title: "", slug: "", category_id: "", price: "", old_price: "",
-    description: "", image_url: "", demo_url: "#", download_url: "", 
+    description: "", image_url: "", demo_url: "#", file_path: "", 
     featuresText: "", technologiesText: "", gallery_images: [], 
     file_included: "", browser_support: "", responsive: "Mobile & Tablet",
     updates: "Lifetime Free", is_premium: false
@@ -61,6 +61,26 @@ export default function AdminThemesPage() {
     setIsUploading(false);
   };
 
+  // নতুন: থিমের মূল ফাইল আপলোড
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setIsFileUploading(true);
+    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+    const { error: uploadError } = await supabase.storage.from("secure-downloads").upload(`themes/${fileName}`, file);
+    
+    if (uploadError) { 
+      showAlert("File upload failed: " + uploadError.message, "error"); 
+      setIsFileUploading(false); 
+      return; 
+    }
+    
+    // সিকিউর বাকেট থেকে সরাসরি URL নেওয়া যাবে না, শুধু পাথ সেভ করব
+    setForm({ ...form, file_path: `themes/${fileName}` });
+    setIsFileUploading(false);
+    showAlert("File uploaded securely!", "success");
+  };
+
   const handleGalleryUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -96,14 +116,12 @@ export default function AdminThemesPage() {
       category: selectedCat ? selectedCat.name : "",
       price: parseFloat(form.price), 
       old_price: form.old_price ? parseFloat(form.old_price) : null,
-      description: form.description, image_url: form.image_url, demo_url: form.demo_url, download_url: form.download_url,
-      features: featuresArray, 
-      technologies: technologiesArray, // নতুন ফিল্ড
+      description: form.description, image_url: form.image_url, demo_url: form.demo_url, 
+      file_path: form.file_path,
+      features: featuresArray, technologies: technologiesArray,
       gallery_images: form.gallery_images, 
-      file_included: form.file_included, // নতুন ফিল্ড
-      browser_support: form.browser_support, // নতুন ফিল্ড
-      responsive: form.responsive, // নতুন ফিল্ড
-      updates: form.updates, // নতুন ফিল্ড
+      file_included: form.file_included, browser_support: form.browser_support, 
+      responsive: form.responsive, updates: form.updates, 
       is_premium: form.is_premium
     };
 
@@ -130,14 +148,12 @@ export default function AdminThemesPage() {
       title: theme.title, slug: theme.slug, category_id: theme.category_id || "",
       price: theme.price, old_price: theme.old_price || "",
       description: theme.description, image_url: theme.image_url, demo_url: theme.demo_url || "#", 
-      download_url: theme.download_url || "", 
+      file_path: theme.file_path || "", 
       featuresText: theme.features ? theme.features.join(", ") : "",
-      technologiesText: theme.technologies ? theme.technologies.join(", ") : "", // নতুন ফিল্ড
+      technologiesText: theme.technologies ? theme.technologies.join(", ") : "",
       gallery_images: theme.gallery_images || [],
-      file_included: theme.file_included || "", // নতুন
-      browser_support: theme.browser_support || "", // নতুন
-      responsive: theme.responsive || "Mobile & Tablet", // নতুন
-      updates: theme.updates || "Lifetime Free", // নতুন
+      file_included: theme.file_included || "", browser_support: theme.browser_support || "", 
+      responsive: theme.responsive || "Mobile & Tablet", updates: theme.updates || "Lifetime Free", 
       is_premium: theme.is_premium
     });
     setEditingId(theme.id);
@@ -147,7 +163,7 @@ export default function AdminThemesPage() {
 
   const closeForm = () => {
     setShowForm(false); setEditingId(null);
-    setForm({ title: "", slug: "", category_id: "", price: "", old_price: "", description: "", image_url: "", demo_url: "#", download_url: "", featuresText: "", technologiesText: "", gallery_images: [], file_included: "", browser_support: "", responsive: "Mobile & Tablet", updates: "Lifetime Free", is_premium: false });
+    setForm({ title: "", slug: "", category_id: "", price: "", old_price: "", description: "", image_url: "", demo_url: "#", file_path: "", featuresText: "", technologiesText: "", gallery_images: [], file_included: "", browser_support: "", responsive: "Mobile & Tablet", updates: "Lifetime Free", is_premium: false });
   };
 
   const handleDelete = async (id, imageUrl) => {
@@ -183,7 +199,6 @@ export default function AdminThemesPage() {
               <form onSubmit={handleSubmit} className="bg-[#121214] border border-brand-gold/30 rounded-3xl p-6 md:p-8 shadow-2xl">
                 <h3 className="text-lg font-bold text-white mb-5">{editingId ? "Edit Theme" : "Add New Theme"}</h3>
                 
-                {/* Basic Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                   <div><label className="block text-xs text-brand-muted mb-2">Title</label><input type="text" name="title" value={form.title} onChange={handleChange} required className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                   <div><label className="block text-xs text-brand-muted mb-2">Slug</label><input type="text" name="slug" value={form.slug} readOnly className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-brand-muted text-sm outline-none" /></div>
@@ -201,36 +216,31 @@ export default function AdminThemesPage() {
                 </div>
 
                 <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Description</label><textarea name="description" value={form.description} onChange={handleChange} required rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
-                
                 <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Key Features (Comma separated)</label><textarea name="featuresText" value={form.featuresText} onChange={handleChange} rows="2" placeholder="Responsive, SEO Optimized, Dark Mode" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
+                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Technology Stack (Comma separated)</label><textarea name="technologiesText" value={form.technologiesText} onChange={handleChange} rows="2" placeholder="Next.js, Tailwind CSS, Supabase" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
 
-                {/* Technology Stack */}
-                <div className="mb-5">
-                  <label className="block text-xs text-brand-muted mb-2">Technology Stack (Comma separated)</label>
-                  <textarea name="technologiesText" value={form.technologiesText} onChange={handleChange} rows="2" placeholder="Next.js, Tailwind CSS, Supabase" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea>
-                </div>
-
-                {/* Specification Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
-                  <div>
-                    <label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaFileArchive /> Files Included</label>
-                    <input type="text" name="file_included" value={form.file_included} onChange={handleChange} placeholder="HTML, CSS, JS, Figma" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaChrome /> Browser Support</label>
-                    <input type="text" name="browser_support" value={form.browser_support} onChange={handleChange} placeholder="Chrome, Safari, Edge" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-brand-muted mb-2">Responsive</label>
-                    <input type="text" name="responsive" value={form.responsive} onChange={handleChange} placeholder="Mobile & Tablet" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-brand-muted mb-2">Updates</label>
-                    <input type="text" name="updates" value={form.updates} onChange={handleChange} placeholder="Lifetime Free" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
-                  </div>
+                  <div><label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaFileArchive /> Files Included</label><input type="text" name="file_included" value={form.file_included} onChange={handleChange} placeholder="HTML, CSS, JS, Figma" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                  <div><label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaChrome /> Browser Support</label><input type="text" name="browser_support" value={form.browser_support} onChange={handleChange} placeholder="Chrome, Safari, Edge" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                  <div><label className="block text-xs text-brand-muted mb-2">Responsive</label><input type="text" name="responsive" value={form.responsive} onChange={handleChange} placeholder="Mobile & Tablet" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                  <div><label className="block text-xs text-brand-muted mb-2">Updates</label><input type="text" name="updates" value={form.updates} onChange={handleChange} placeholder="Lifetime Free" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                 </div>
 
-                {/* Gallery Upload */}
+                {/* নতুন: সিকিউর ফাইল আপলোড */}
+                <div className="mb-5 bg-[#09090B] border border-brand-gold/20 rounded-xl p-4">
+                  <label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaCloudUploadAlt /> Secure Download File (ZIP/PDF)</label>
+                  <div className="flex items-center gap-4">
+                    <label className="cursor-pointer bg-brand-gold/10 hover:bg-brand-gold/20 border border-brand-gold/30 px-6 py-3 rounded-xl text-sm font-semibold text-brand-gold transition-all flex items-center gap-2">
+                      {isFileUploading ? "Uploading..." : <><FaUpload /> Upload Secure File</>}
+                      <input type="file" onChange={handleFileUpload} className="hidden" disabled={isFileUploading} />
+                    </label>
+                    {form.file_path && (
+                      <div className="text-xs text-green-400 flex items-center gap-2"><FaCheckCircle /> File Uploaded ({form.file_path.split('/')[1]})</div>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-brand-muted mt-2">* This file is private and cannot be accessed without a valid purchase.</p>
+                </div>
+
                 <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
                   <label className="block text-xs text-brand-muted mb-3">Gallery Images (Multiple)</label>
                   <div className="flex flex-wrap gap-3 mb-3">
@@ -257,21 +267,21 @@ export default function AdminThemesPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                   <div><label className="block text-xs text-brand-muted mb-2">Demo URL</label><input type="text" name="demo_url" value={form.demo_url} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
-                  <div><label className="block text-xs text-brand-muted mb-2">Download URL</label><input type="text" name="download_url" value={form.download_url} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
-                </div>
-
-                <div className="mb-6">
-                  <label className="block text-xs text-brand-muted mb-2">Thumbnail Image</label>
-                  <div className="flex items-center gap-4">
-                    <label className="cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2">
-                      {isUploading ? "Uploading..." : <><FaUpload /> Upload Image</>}
-                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={isUploading} />
-                    </label>
-                    {form.image_url && <img src={form.image_url} alt="Preview" className="h-12 w-20 object-cover rounded-lg border border-white/10" />}
+                  <div className="flex items-end">
+                    <div className="w-full">
+                       <label className="block text-xs text-brand-muted mb-2">Thumbnail Image</label>
+                       <div className="flex items-center gap-4">
+                        <label className="cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2 w-full justify-center">
+                          {isUploading ? "Uploading..." : <><FaUpload /> Thumbnail</>}
+                          <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={isUploading} />
+                        </label>
+                        {form.image_url && <img src={form.image_url} alt="Preview" className="h-10 w-10 object-cover rounded-lg border border-white/10" />}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <button type="submit" disabled={isSubmitting || isUploading || !form.image_url} className="bg-brand-gold hover:bg-brand-gold-hover disabled:opacity-50 text-black font-bold px-8 py-3 rounded-xl transition-all flex items-center gap-2 text-sm">
+                <button type="submit" disabled={isSubmitting || isUploading || !form.image_url || !form.file_path} className="bg-brand-gold hover:bg-brand-gold-hover disabled:opacity-50 text-black font-bold px-8 py-3 rounded-xl transition-all flex items-center gap-2 text-sm">
                   <FaSave /> {isSubmitting ? "Saving..." : "Save Theme"}
                 </button>
               </form>
@@ -279,6 +289,7 @@ export default function AdminThemesPage() {
           )}
         </AnimatePresence>
 
+        {/* থিম লিস্ট */}
         <div className="relative mb-6">
           <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
           <input type="text" placeholder="Search themes..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-[#121214] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
@@ -294,16 +305,11 @@ export default function AdminThemesPage() {
               <div key={theme.id} className="bg-[#121214] border border-white/5 rounded-2xl overflow-hidden group hover:border-brand-gold/30 transition-colors">
                 <div className="h-40 overflow-hidden relative">
                   <img src={theme.image_url} alt={theme.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute top-3 left-3">
-                    {theme.is_premium ? <span className="bg-brand-gold text-black text-[10px] font-bold px-2 py-1 rounded">PRO</span> : <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">FREE</span>}
-                  </div>
+                  <div className="absolute top-3 left-3">{theme.is_premium ? <span className="bg-brand-gold text-black text-[10px] font-bold px-2 py-1 rounded">PRO</span> : <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">FREE</span>}</div>
                   <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-brand-gold font-bold px-3 py-1 rounded-full text-xs">৳{theme.price}</div>
                 </div>
                 <div className="p-4 flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-white mb-0.5 line-clamp-1">{theme.title}</h3>
-                    <p className="text-xs text-brand-muted uppercase">{theme.category}</p>
-                  </div>
+                  <div className="min-w-0 flex-1"><h3 className="font-bold text-white mb-0.5 line-clamp-1">{theme.title}</h3><p className="text-xs text-brand-muted uppercase">{theme.category}</p></div>
                   <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                     <button onClick={() => handleEdit(theme)} className="w-9 h-9 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-colors"><FaEdit size={12} /></button>
                     <button onClick={() => handleDelete(theme.id, theme.image_url)} className="w-9 h-9 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors"><FaTrash size={12} /></button>
