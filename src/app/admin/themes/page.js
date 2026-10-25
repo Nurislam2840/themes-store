@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-const supabase = createClient();
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
 import { 
@@ -9,6 +8,8 @@ import {
   FaSearch, FaEdit, FaFileArchive, FaChrome, FaCloudUploadAlt, FaCheckCircle 
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+
+const supabase = createClient();
 
 export default function AdminThemesPage() {
   const { showAlert } = useAlert();
@@ -65,7 +66,7 @@ export default function AdminThemesPage() {
     setIsUploading(false);
   };
 
-  // নতুন: থিমের মূল ফাইল আপলোড (নিরাপদ)
+  // সিকিউর ফাইল আপলোড (সঠিক পাথ সেভ করবে)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -73,9 +74,11 @@ export default function AdminThemesPage() {
     
     try {
       const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+      const filePath = `themes/${fileName}`;
+
       const { error: uploadError } = await supabase.storage
         .from("secure-downloads")
-        .upload(`themes/${fileName}`, file);
+        .upload(filePath, file);
       
       if (uploadError) { 
         console.error("Upload error:", uploadError);
@@ -84,7 +87,7 @@ export default function AdminThemesPage() {
         return; 
       }
       
-      setForm(prevForm => ({ ...prevForm, file_path: `themes/${fileName}` }));
+      setForm(prevForm => ({ ...prevForm, file_path: filePath }));
       showAlert("File uploaded securely!", "success");
     } catch (err) {
       console.error("Catch error:", err);
@@ -242,7 +245,6 @@ export default function AdminThemesPage() {
                   <div><label className="block text-xs text-brand-muted mb-2">Updates</label><input type="text" name="updates" value={form.updates} onChange={handleChange} placeholder="Lifetime Free" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                 </div>
 
-                {/* সিকিউর ফাইল আপলোড */}
                 <div className="mb-5 bg-[#09090B] border border-brand-gold/20 rounded-xl p-4">
                   <label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaCloudUploadAlt /> Secure Download File (ZIP/PDF)</label>
                   <div className="flex items-center gap-4">
