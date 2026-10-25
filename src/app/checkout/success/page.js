@@ -2,7 +2,8 @@
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 import { useCartWishlistStore } from "@/store/cartWishlistStore";
 import { FaCheckCircle, FaDownload, FaSpinner, FaBoxOpen, FaArrowRight } from "react-icons/fa";
 import { motion } from "framer-motion";

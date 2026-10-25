@@ -6,13 +6,11 @@ export async function POST(req) {
     const { themeSlug } = await req.json();
     const supabase = await createClient();
 
-    // ১. ইউজার লগইন আছে কিনা চেক
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized - Please log in." }, { status: 401 });
     }
 
-    // ২. ইউজার এই থিমটি কিনেছে কিনা (approved order) চেক
     const { data: order } = await supabase
       .from("orders")
       .select("id")
@@ -25,7 +23,6 @@ export async function POST(req) {
       return NextResponse.json({ error: "Purchase required." }, { status: 403 });
     }
 
-    // ৩. থিমের ফাইল পাথ বের করা
     const { data: theme } = await supabase
       .from("themes")
       .select("file_path")
@@ -36,7 +33,6 @@ export async function POST(req) {
       return NextResponse.json({ error: "File not found for this theme." }, { status: 404 });
     }
 
-    // ৪. ৬০ সেকেন্ডের জন্য Signed URL তৈরি
     const { data: signedData, error } = await supabase.storage
       .from("secure-downloads")
       .createSignedUrl(theme.file_path, 60);

@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 import { useCurrencyStore } from "@/store/currencyStore";
 import { FaCheck, FaCrown, FaRocket, FaGem, FaArrowRight, FaSpinner, FaLock } from "react-icons/fa";
 import { motion } from "framer-motion";

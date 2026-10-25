@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaUser, FaLock, FaArrowLeft, FaSave, FaSpinner } from "react-icons/fa";

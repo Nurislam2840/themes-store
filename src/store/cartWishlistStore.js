@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 
 async function getUserId() {
   const { data: { session } } = await supabase.auth.getSession();

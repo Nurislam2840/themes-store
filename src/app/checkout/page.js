@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 import { useAlert } from "@/providers/AlertProvider";
 import { useCartWishlistStore } from "@/store/cartWishlistStore";
 import { FaLock, FaSpinner, FaShoppingBag } from "react-icons/fa";

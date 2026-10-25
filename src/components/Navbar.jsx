@@ -9,7 +9,8 @@ import {
 } from "react-icons/fa";
 import { useCartWishlistStore } from "@/store/cartWishlistStore";
 import { useCurrencyStore } from "@/store/currencyStore";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 import CartDrawer from "@/components/CartDrawer";
 import SearchModal from "@/components/SearchModal";
 

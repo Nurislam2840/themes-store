@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
 import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaImage, FaEye, FaEyeSlash, FaEdit } from "react-icons/fa";

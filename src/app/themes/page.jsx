@@ -5,7 +5,8 @@ import { FaSpinner, FaBolt, FaStar, FaShieldAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 
 function ThemesContent() {
   const { themes, isLoading } = useStore();

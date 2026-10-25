@@ -27,7 +27,7 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // ⚠️ এই লাইনটি অত্যন্ত গুরুত্বপূর্ণ। এটি সেশন রিফ্রেশ করে।
+  // ⚠️ এই লাইনটি অত্যন্ত জরুরি — এটি সেশন রিফ্রেশ করে
   await supabase.auth.getUser()
 
   return supabaseResponse

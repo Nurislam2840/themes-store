@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 import Link from "next/link";
 import { FaEnvelope, FaArrowLeft, FaSpinner, FaCheckCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
