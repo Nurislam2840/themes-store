@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useReviewStore } from "@/store/reviewStore";
 import { useAlert } from "@/providers/AlertProvider";
 import { FaStar, FaUserCircle, FaSpinner, FaPen } from "react-icons/fa";
+import { reviewSchema } from "@/lib/validations/themeSchema";
 
 export default function ReviewSection({ themeId }) {
   const { reviews, isLoading, fetchReviews, addReview } = useReviewStore();
@@ -18,15 +19,25 @@ export default function ReviewSection({ themeId }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) return showAlert("Please enter your name", "error");
-    if (!form.comment.trim()) return showAlert("Please write a review", "error");
+    
+    const result = reviewSchema.safeParse({
+      themeId,
+      name: form.name.trim(),
+      rating: form.rating,
+      comment: form.comment.trim(),
+    });
+
+    if (!result.success) {
+      const firstError = result.error.errors[0];
+      return showAlert(firstError.message, "error");
+    }
 
     setIsSubmitting(true);
     const res = await addReview({
       themeId,
-      name: form.name,
-      rating: form.rating,
-      comment: form.comment,
+      name: result.data.name,
+      rating: result.data.rating,
+      comment: result.data.comment,
     });
     setIsSubmitting(false);
 
@@ -38,15 +49,13 @@ export default function ReviewSection({ themeId }) {
     }
   };
 
-  // গড় রেটিং ক্যালকুলেট করা
   const avgRating = reviews.length > 0 
     ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length).toFixed(1) 
     : 0;
 
   return (
-    <div className="bg-brand-card border border-brand-border rounded-3xl p-6 md:p-10 mb-8">
-      {/* হেডার সেকশন */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-brand-border pb-6">
+    <div className="bg-[#121214] border border-white/5 rounded-3xl p-6 md:p-10 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-white/5 pb-6">
         <div>
           <h2 className="text-2xl font-bold text-white">Customer Reviews</h2>
           <div className="flex items-center gap-3 mt-2">
@@ -62,18 +71,17 @@ export default function ReviewSection({ themeId }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* বাম দিকে: রিভিউ লিস্ট */}
         <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
           {isLoading ? (
             <div className="flex justify-center py-10"><FaSpinner className="animate-spin text-brand-gold text-3xl" /></div>
           ) : reviews.length === 0 ? (
-            <div className="text-center py-10 bg-brand-dark rounded-xl border border-brand-border">
+            <div className="text-center py-10 bg-[#09090B] rounded-xl border border-white/5">
               <FaPen className="mx-auto text-3xl text-brand-muted mb-3 opacity-50" />
               <p className="text-brand-muted">No reviews yet. Be the first to review!</p>
             </div>
           ) : (
             reviews.map((rev) => (
-              <div key={rev.id} className="bg-brand-dark border border-brand-border rounded-xl p-4">
+              <div key={rev.id} className="bg-[#09090B] border border-white/5 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold">
@@ -96,8 +104,7 @@ export default function ReviewSection({ themeId }) {
           )}
         </div>
 
-        {/* ডান দিকে: রিভিউ ফর্ম */}
-        <div className="bg-brand-dark border border-brand-border rounded-2xl p-6 h-fit sticky top-24">
+        <div className="bg-[#09090B] border border-white/5 rounded-2xl p-6 h-fit">
           <h3 className="text-lg font-bold text-white mb-4">Write a Review</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -106,7 +113,7 @@ export default function ReviewSection({ themeId }) {
                 type="text" 
                 value={form.name} 
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold transition"
+                className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold transition"
                 placeholder="John Doe"
               />
             </div>
@@ -137,7 +144,7 @@ export default function ReviewSection({ themeId }) {
                 rows="4"
                 value={form.comment} 
                 onChange={(e) => setForm({ ...form, comment: e.target.value })}
-                className="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold transition resize-none"
+                className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold transition resize-none"
                 placeholder="What do you think about this theme?"
               ></textarea>
             </div>

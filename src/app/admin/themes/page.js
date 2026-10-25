@@ -8,6 +8,8 @@ import {
   FaSearch, FaEdit, FaFileArchive, FaChrome, FaCloudUploadAlt, FaCheckCircle 
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { themeSchema } from "@/lib/validations/themeSchema";
+import { z } from "zod";
 
 const supabase = createClient();
 
@@ -66,7 +68,6 @@ export default function AdminThemesPage() {
     setIsUploading(false);
   };
 
-  // সিকিউর ফাইল আপলোড (সঠিক পাথ সেভ করবে)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -127,29 +128,48 @@ export default function AdminThemesPage() {
     
     const featuresArray = form.featuresText.split(",").map(f => f.trim()).filter(f => f !== "");
     const technologiesArray = form.technologiesText.split(",").map(t => t.trim()).filter(t => t !== "");
-    const selectedCat = dbCategories.find(c => c.id === form.category_id);
 
     const themeData = {
-      title: form.title, slug: form.slug, 
+      title: form.title.trim(),
+      slug: form.slug,
       category_id: form.category_id || null,
-      category: selectedCat ? selectedCat.name : "",
-      price: parseFloat(form.price), 
+      price: parseFloat(form.price),
       old_price: form.old_price ? parseFloat(form.old_price) : null,
-      description: form.description, image_url: form.image_url, demo_url: form.demo_url, 
+      description: form.description.trim(),
+      image_url: form.image_url,
+      demo_url: form.demo_url,
       file_path: form.file_path,
-      features: featuresArray, technologies: technologiesArray,
-      gallery_images: form.gallery_images, 
-      file_included: form.file_included, browser_support: form.browser_support, 
-      responsive: form.responsive, updates: form.updates, 
-      is_premium: form.is_premium
+      features: featuresArray,
+      technologies: technologiesArray,
+      gallery_images: form.gallery_images,
+      file_included: form.file_included,
+      browser_support: form.browser_support,
+      responsive: form.responsive,
+      updates: form.updates,
+      is_premium: form.is_premium,
     };
+
+    // Zod ভ্যালিডেশন
+    try {
+      themeSchema.parse(themeData);
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        const firstError = validationError.errors[0];
+        showAlert(`Invalid input: ${firstError.message}`, "error");
+      }
+      setIsSubmitting(false);
+      return;
+    }
+
+    const selectedCat = dbCategories.find(c => c.id === form.category_id);
+    const finalData = { ...themeData, category: selectedCat ? selectedCat.name : "" };
 
     let error;
     if (editingId) {
-      const { error: updateError } = await supabase.from("themes").update(themeData).eq("id", editingId);
+      const { error: updateError } = await supabase.from("themes").update(finalData).eq("id", editingId);
       error = updateError;
     } else {
-      const { error: insertError } = await supabase.from("themes").insert([themeData]);
+      const { error: insertError } = await supabase.from("themes").insert([finalData]);
       error = insertError;
     }
 
@@ -200,11 +220,10 @@ export default function AdminThemesPage() {
   const filteredThemes = themes.filter(t => t.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="min-h-screen bg-[#09090B] pt-28 pb-20 px-6">
+    <div className="min-h-screen bg-[#09090B] pt-10 pb-20 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <Link href="/admin" className="inline-flex items-center gap-2 text-brand-muted hover:text-brand-gold mb-2 text-sm font-medium"><FaArrowLeft /> Back to Dashboard</Link>
             <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Manage Themes</h1>
           </div>
           <button onClick={() => { closeForm(); setShowForm(!showForm); }} className="bg-brand-gold hover:bg-brand-gold-hover text-black px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 text-sm">
