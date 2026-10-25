@@ -3,13 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req) {
   try {
-    const { themeId } = await req.json();
+    const { themeSlug } = await req.json();
     const supabase = await createClient();
 
-    // ১. ইউজার লগইন করা আছে কিনা চেক
+    // ১. ইউজার লগইন আছে কিনা চেক
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || user.is_anonymous) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized - Please log in." }, { status: 401 });
     }
 
     // ২. ইউজার এই থিমটি কিনেছে কিনা (approved order) চেক
@@ -18,24 +18,22 @@ export async function POST(req) {
       .select("id")
       .eq("user_id", user.id)
       .eq("status", "approved")
-      .ilike("theme_title", `%${themeId}%`) // অথবা theme_id থাকলে সেটি ব্যবহার করুন
-      .limit(1)
+      .eq("theme_slug", themeSlug)
       .maybeSingle();
 
-    // যদি order না থাকে, তবে theme_slug দিয়েও চেক করা যায়
     if (!order) {
-      return NextResponse.json({ error: "Purchase required" }, { status: 403 });
+      return NextResponse.json({ error: "Purchase required." }, { status: 403 });
     }
 
     // ৩. থিমের ফাইল পাথ বের করা
     const { data: theme } = await supabase
       .from("themes")
       .select("file_path")
-      .eq("id", themeId)
+      .eq("slug", themeSlug)
       .single();
 
     if (!theme?.file_path) {
-      return NextResponse.json({ error: "File not found" }, { status: 404 });
+      return NextResponse.json({ error: "File not found for this theme." }, { status: 404 });
     }
 
     // ৪. ৬০ সেকেন্ডের জন্য Signed URL তৈরি
