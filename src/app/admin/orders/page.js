@@ -1,11 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-const supabase = createClient();
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
-import { FaArrowLeft, FaSync, FaCheck, FaTimes, FaUser, FaEnvelope, FaPhone, FaClock, FaBoxOpen, FaSearch } from "react-icons/fa";
+import { 
+  FaArrowLeft, FaSync, FaCheck, FaTimes, FaUser, 
+  FaEnvelope, FaPhone, FaClock, FaBoxOpen, FaSearch, FaTrash 
+} from "react-icons/fa";
 import { motion } from "framer-motion";
+
+const supabase = createClient();
 
 export default function AdminOrdersPage() {
   const { showAlert } = useAlert();
@@ -40,6 +44,17 @@ export default function AdminOrdersPage() {
     setProcessingId(null);
   };
 
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to permanently delete this order? This action cannot be undone.")) return;
+    const { error } = await supabase.from("orders").delete().eq("id", id);
+    if (error) {
+      showAlert("Failed to delete order", "error");
+    } else {
+      showAlert("Order deleted successfully", "success");
+      fetchOrders();
+    }
+  };
+
   const stats = {
     total: orders.length,
     pending: orders.filter(o => o.status === "pending").length,
@@ -52,15 +67,17 @@ export default function AdminOrdersPage() {
     .filter(o => o.theme_title?.toLowerCase().includes(search.toLowerCase()) || o.customer_email?.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="min-h-screen bg-[#09090B] pt-28 pb-20 px-6">
+    <div className="min-h-screen bg-[#09090B] pt-10 pb-20 px-4 md:px-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <Link href="/admin" className="inline-flex items-center gap-2 text-brand-muted hover:text-brand-gold mb-2 text-sm font-medium"><FaArrowLeft /> Back to Dashboard</Link>
+            <Link href="/admin" className="inline-flex items-center gap-2 text-brand-muted hover:text-brand-gold mb-2 text-sm font-medium md:hidden"><FaArrowLeft /> Back</Link>
             <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Manage Orders</h1>
             <p className="text-brand-muted text-sm mt-1">{orders.length} total orders</p>
           </div>
-          <button onClick={fetchOrders} className="bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 rounded-xl font-semibold text-white transition-all flex items-center gap-2 text-sm"><FaSync /> Refresh</button>
+          <button onClick={fetchOrders} className="bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 rounded-xl font-semibold text-white transition-all flex items-center gap-2 text-sm">
+            <FaSync /> Refresh
+          </button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -92,17 +109,31 @@ export default function AdminOrdersPage() {
               <motion.div key={order.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-[#121214] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-colors">
                 <div className="flex flex-col md:flex-row justify-between gap-4 mb-4 pb-4 border-b border-white/5">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-3 mb-1"><h3 className="text-lg font-bold text-white truncate">{order.theme_title}</h3><span className="text-xs font-bold bg-white/5 px-2 py-0.5 rounded text-brand-muted">৳{order.price}</span></div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-lg font-bold text-white truncate">{order.theme_title}</h3>
+                      <span className="text-xs font-bold bg-white/5 px-2 py-0.5 rounded text-brand-muted">৳{order.price}</span>
+                    </div>
                     <p className="text-xs text-brand-muted font-mono">ID: {order.transaction_id}</p>
                   </div>
-                  <span className={`text-xs font-bold px-3 py-1.5 rounded-full border self-start ${order.status === 'approved' ? 'bg-green-500/10 text-green-400 border-green-500/20' : order.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>{order.status.toUpperCase()}</span>
+                  <div className="flex items-center gap-2 self-start">
+                    <span className={`text-xs font-bold px-3 py-1.5 rounded-full border ${
+                      order.status === 'approved' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                      order.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                      'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                    }`}>{order.status.toUpperCase()}</span>
+                    <button onClick={() => handleDelete(order.id)} className="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors" title="Delete Order">
+                      <FaTrash size={12} />
+                    </button>
+                  </div>
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-6 text-sm mb-4">
                   <div className="flex items-center gap-2 text-white truncate"><FaUser className="text-brand-gold text-xs" /> {order.customer_name}</div>
                   <div className="flex items-center gap-2 text-brand-muted truncate"><FaEnvelope className="text-brand-gold text-xs" /> {order.customer_email}</div>
                   <div className="flex items-center gap-2 text-brand-muted"><FaPhone className="text-brand-gold text-xs" /> {order.customer_phone || "N/A"}</div>
                   <div className="flex items-center gap-2 text-brand-muted text-xs"><FaClock className="text-brand-gold text-xs" /> {new Date(order.created_at).toLocaleString()}</div>
                 </div>
+
                 {order.status === 'pending' && (
                   <div className="flex gap-3 pt-4 border-t border-white/5">
                     <button onClick={() => handleApprove(order.id)} disabled={processingId === order.id} className="flex-1 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm">{processingId === order.id ? "Processing..." : <><FaCheck /> Approve</>}</button>

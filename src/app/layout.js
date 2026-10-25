@@ -4,9 +4,9 @@ import { AlertProvider } from "@/providers/AlertProvider";
 import { StoreProvider } from "@/providers/StoreProvider";
 import { SessionProvider } from "@/providers/SessionProvider";
 import { StoreHydrator } from "@/providers/StoreHydrator";
-import Navbar from "@/components/Navbar";
+import ConditionalNavbar from "@/components/ConditionalNavbar";
 import Footer from "@/components/Footer";
-import { createClient } from "@/lib/supabase/server"; // সার্ভার ক্লায়েন্ট
+import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -18,11 +18,11 @@ export const metadata = {
 export default async function RootLayout({ children }) {
   const supabase = await createClient();
   
-  // ১. ডিফল্ট থিম চেক করা
+  // ডিফল্ট থিম লোড
   const { data: settings } = await supabase.from("site_settings").select("default_theme").eq("id", 1).single();
   let activeTheme = settings?.default_theme || "dark";
 
-  // ২. ইউজার লগইন থাকলে তার পছন্দের থিম চেক করা
+  // ইউজারের থিম লোড
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
     const { data: profile } = await supabase.from("profiles").select("theme").eq("id", user.id).single();
@@ -36,7 +36,7 @@ export default async function RootLayout({ children }) {
           <SessionProvider>
             <StoreProvider>
               <StoreHydrator />
-              <Navbar initialTheme={activeTheme} />
+              <ConditionalNavbar initialTheme={activeTheme} />
               <main className="pt-20 flex-grow w-full overflow-x-hidden">
                 {children}
               </main>
