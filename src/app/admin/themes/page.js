@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
-import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaLink, FaSearch, FaEdit } from "react-icons/fa";
+import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaSearch, FaEdit, FaCode, FaFileArchive, FaChrome } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminThemesPage() {
@@ -13,21 +13,24 @@ export default function AdminThemesPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isGalleryUploading, setIsGalleryUploading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
 
+  // ফর্মে সব ফিল্ড যোগ করা হলো
   const [form, setForm] = useState({
     title: "", slug: "", category_id: "", price: "", old_price: "",
     description: "", image_url: "", demo_url: "#", download_url: "", 
-    featuresText: "", galleryText: "", is_premium: false
+    featuresText: "", technologiesText: "", gallery_images: [], 
+    file_included: "", browser_support: "", responsive: "Mobile & Tablet",
+    updates: "Lifetime Free", is_premium: false
   });
 
   const fetchData = async () => {
     setLoading(true);
     const { data: themeData } = await supabase.from("themes").select("*").order("created_at", { ascending: false });
     const { data: catData } = await supabase.from("categories").select("*").order("order_index");
-    
     if (themeData) setThemes(themeData);
     if (catData) setDbCategories(catData);
     setLoading(false);
@@ -58,23 +61,49 @@ export default function AdminThemesPage() {
     setIsUploading(false);
   };
 
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    setIsGalleryUploading(true);
+    const uploadedUrls = [];
+    for (const file of files) {
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
+      const { error } = await supabase.storage.from("theme-images").upload(`gallery/${fileName}`, file);
+      if (!error) {
+        const { data } = supabase.storage.from("theme-images").getPublicUrl(`gallery/${fileName}`);
+        uploadedUrls.push(data.publicUrl);
+      }
+    }
+    setForm(prev => ({ ...prev, gallery_images: [...prev.gallery_images, ...uploadedUrls] }));
+    setIsGalleryUploading(false);
+  };
+
+  const removeGalleryImage = (index) => {
+    setForm(prev => ({ ...prev, gallery_images: prev.gallery_images.filter((_, i) => i !== index) }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     const featuresArray = form.featuresText.split(",").map(f => f.trim()).filter(f => f !== "");
-    const galleryArray = form.galleryText.split(",").map(g => g.trim()).filter(g => g !== "");
+    const technologiesArray = form.technologiesText.split(",").map(t => t.trim()).filter(t => t !== "");
     const selectedCat = dbCategories.find(c => c.id === form.category_id);
 
     const themeData = {
       title: form.title, slug: form.slug, 
       category_id: form.category_id || null,
-      category: selectedCat ? selectedCat.name : "", // পুরনো টেক্সট কলামের জন্য
+      category: selectedCat ? selectedCat.name : "",
       price: parseFloat(form.price), 
       old_price: form.old_price ? parseFloat(form.old_price) : null,
       description: form.description, image_url: form.image_url, demo_url: form.demo_url, download_url: form.download_url,
-      features: featuresArray, gallery_images: galleryArray, 
-      technologies: selectedCat ? [selectedCat.name] : [], 
+      features: featuresArray, 
+      technologies: technologiesArray, // নতুন ফিল্ড
+      gallery_images: form.gallery_images, 
+      file_included: form.file_included, // নতুন ফিল্ড
+      browser_support: form.browser_support, // নতুন ফিল্ড
+      responsive: form.responsive, // নতুন ফিল্ড
+      updates: form.updates, // নতুন ফিল্ড
       is_premium: form.is_premium
     };
 
@@ -103,7 +132,12 @@ export default function AdminThemesPage() {
       description: theme.description, image_url: theme.image_url, demo_url: theme.demo_url || "#", 
       download_url: theme.download_url || "", 
       featuresText: theme.features ? theme.features.join(", ") : "",
-      galleryText: theme.gallery_images ? theme.gallery_images.join(", ") : "",
+      technologiesText: theme.technologies ? theme.technologies.join(", ") : "", // নতুন ফিল্ড
+      gallery_images: theme.gallery_images || [],
+      file_included: theme.file_included || "", // নতুন
+      browser_support: theme.browser_support || "", // নতুন
+      responsive: theme.responsive || "Mobile & Tablet", // নতুন
+      updates: theme.updates || "Lifetime Free", // নতুন
       is_premium: theme.is_premium
     });
     setEditingId(theme.id);
@@ -113,7 +147,7 @@ export default function AdminThemesPage() {
 
   const closeForm = () => {
     setShowForm(false); setEditingId(null);
-    setForm({ title: "", slug: "", category_id: "", price: "", old_price: "", description: "", image_url: "", demo_url: "#", download_url: "", featuresText: "", galleryText: "", is_premium: false });
+    setForm({ title: "", slug: "", category_id: "", price: "", old_price: "", description: "", image_url: "", demo_url: "#", download_url: "", featuresText: "", technologiesText: "", gallery_images: [], file_included: "", browser_support: "", responsive: "Mobile & Tablet", updates: "Lifetime Free", is_premium: false });
   };
 
   const handleDelete = async (id, imageUrl) => {
@@ -149,29 +183,69 @@ export default function AdminThemesPage() {
               <form onSubmit={handleSubmit} className="bg-[#121214] border border-brand-gold/30 rounded-3xl p-6 md:p-8 shadow-2xl">
                 <h3 className="text-lg font-bold text-white mb-5">{editingId ? "Edit Theme" : "Add New Theme"}</h3>
                 
+                {/* Basic Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                   <div><label className="block text-xs text-brand-muted mb-2">Title</label><input type="text" name="title" value={form.title} onChange={handleChange} required className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                   <div><label className="block text-xs text-brand-muted mb-2">Slug</label><input type="text" name="slug" value={form.slug} readOnly className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-brand-muted text-sm outline-none" /></div>
-                  
                   <div>
                     <label className="block text-xs text-brand-muted mb-2">Category</label>
                     <select name="category_id" value={form.category_id} onChange={handleChange} required className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold">
                       <option value="">Select Category</option>
-                      {dbCategories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.parent_id ? `↳ ${cat.name}` : cat.name}</option>
-                      ))}
+                      {dbCategories.map(cat => (<option key={cat.id} value={cat.id}>{cat.parent_id ? `↳ ${cat.name}` : cat.name}</option>))}
                     </select>
                   </div>
-                  
                   <div className="grid grid-cols-2 gap-3">
-                    <div><label className="block text-xs text-brand-muted mb-2">Current Price (৳)</label><input type="number" name="price" value={form.price} onChange={handleChange} required step="1" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
+                    <div><label className="block text-xs text-brand-muted mb-2">Price (৳)</label><input type="number" name="price" value={form.price} onChange={handleChange} required step="1" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                     <div><label className="block text-xs text-brand-muted mb-2">Old Price (৳)</label><input type="number" name="old_price" value={form.old_price} onChange={handleChange} step="1" placeholder="Optional" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                   </div>
                 </div>
 
                 <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Description</label><textarea name="description" value={form.description} onChange={handleChange} required rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
-                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Features (Comma separated)</label><textarea name="featuresText" value={form.featuresText} onChange={handleChange} rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
-                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Gallery Images (Comma separated URLs)</label><textarea name="galleryText" value={form.galleryText} onChange={handleChange} rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
+                
+                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Key Features (Comma separated)</label><textarea name="featuresText" value={form.featuresText} onChange={handleChange} rows="2" placeholder="Responsive, SEO Optimized, Dark Mode" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
+
+                {/* Technology Stack */}
+                <div className="mb-5">
+                  <label className="block text-xs text-brand-muted mb-2">Technology Stack (Comma separated)</label>
+                  <textarea name="technologiesText" value={form.technologiesText} onChange={handleChange} rows="2" placeholder="Next.js, Tailwind CSS, Supabase" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea>
+                </div>
+
+                {/* Specification Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
+                  <div>
+                    <label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaFileArchive /> Files Included</label>
+                    <input type="text" name="file_included" value={form.file_included} onChange={handleChange} placeholder="HTML, CSS, JS, Figma" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaChrome /> Browser Support</label>
+                    <input type="text" name="browser_support" value={form.browser_support} onChange={handleChange} placeholder="Chrome, Safari, Edge" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-brand-muted mb-2">Responsive</label>
+                    <input type="text" name="responsive" value={form.responsive} onChange={handleChange} placeholder="Mobile & Tablet" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-brand-muted mb-2">Updates</label>
+                    <input type="text" name="updates" value={form.updates} onChange={handleChange} placeholder="Lifetime Free" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
+                  </div>
+                </div>
+
+                {/* Gallery Upload */}
+                <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
+                  <label className="block text-xs text-brand-muted mb-3">Gallery Images (Multiple)</label>
+                  <div className="flex flex-wrap gap-3 mb-3">
+                    {form.gallery_images.map((url, i) => (
+                      <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden group">
+                        <img src={url} alt="gallery" className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => removeGalleryImage(i)} className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-500"><FaTrash /></button>
+                      </div>
+                    ))}
+                    <label className="w-20 h-20 rounded-lg border-2 border-dashed border-white/20 hover:border-brand-gold flex flex-col items-center justify-center cursor-pointer transition-colors">
+                      {isGalleryUploading ? <span className="text-[10px] text-brand-muted">Uploading...</span> : <><FaPlus className="text-brand-muted" /><span className="text-[10px] text-brand-muted mt-1">Add</span></>}
+                      <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="hidden" disabled={isGalleryUploading} />
+                    </label>
+                  </div>
+                </div>
 
                 <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4 flex items-center justify-between">
                   <div><p className="text-sm font-bold text-white mb-0.5">Premium Theme (PRO)</p></div>
