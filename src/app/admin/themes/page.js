@@ -3,7 +3,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
-import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaSearch, FaEdit, FaFileArchive, FaChrome, FaCloudUploadAlt } from "react-icons/fa";
+import { 
+  FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, 
+  FaSearch, FaEdit, FaFileArchive, FaChrome, FaCloudUploadAlt, FaCheckCircle 
+} from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminThemesPage() {
@@ -14,7 +17,7 @@ export default function AdminThemesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isGalleryUploading, setIsGalleryUploading] = useState(false);
-  const [isFileUploading, setIsFileUploading] = useState(false); // নতুন স্টেট
+  const [isFileUploading, setIsFileUploading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -61,24 +64,33 @@ export default function AdminThemesPage() {
     setIsUploading(false);
   };
 
-  // নতুন: থিমের মূল ফাইল আপলোড
+  // নতুন: থিমের মূল ফাইল আপলোড (নিরাপদ)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setIsFileUploading(true);
-    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-    const { error: uploadError } = await supabase.storage.from("secure-downloads").upload(`themes/${fileName}`, file);
     
-    if (uploadError) { 
-      showAlert("File upload failed: " + uploadError.message, "error"); 
-      setIsFileUploading(false); 
-      return; 
+    try {
+      const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+      const { error: uploadError } = await supabase.storage
+        .from("secure-downloads")
+        .upload(`themes/${fileName}`, file);
+      
+      if (uploadError) { 
+        console.error("Upload error:", uploadError);
+        showAlert("File upload failed: " + uploadError.message, "error");
+        setIsFileUploading(false); 
+        return; 
+      }
+      
+      setForm(prevForm => ({ ...prevForm, file_path: `themes/${fileName}` }));
+      showAlert("File uploaded securely!", "success");
+    } catch (err) {
+      console.error("Catch error:", err);
+      showAlert("Something went wrong during upload", "error");
+    } finally {
+      setIsFileUploading(false);
     }
-    
-    // সিকিউর বাকেট থেকে সরাসরি URL নেওয়া যাবে না, শুধু পাথ সেভ করব
-    setForm({ ...form, file_path: `themes/${fileName}` });
-    setIsFileUploading(false);
-    showAlert("File uploaded securely!", "success");
   };
 
   const handleGalleryUpload = async (e) => {
@@ -104,6 +116,9 @@ export default function AdminThemesPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.image_url) return showAlert("Thumbnail image is required", "error");
+    if (!form.file_path) return showAlert("Secure download file is required", "error");
+
     setIsSubmitting(true);
     
     const featuresArray = form.featuresText.split(",").map(f => f.trim()).filter(f => f !== "");
@@ -226,7 +241,7 @@ export default function AdminThemesPage() {
                   <div><label className="block text-xs text-brand-muted mb-2">Updates</label><input type="text" name="updates" value={form.updates} onChange={handleChange} placeholder="Lifetime Free" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                 </div>
 
-                {/* নতুন: সিকিউর ফাইল আপলোড */}
+                {/* সিকিউর ফাইল আপলোড */}
                 <div className="mb-5 bg-[#09090B] border border-brand-gold/20 rounded-xl p-4">
                   <label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaCloudUploadAlt /> Secure Download File (ZIP/PDF)</label>
                   <div className="flex items-center gap-4">
@@ -235,7 +250,7 @@ export default function AdminThemesPage() {
                       <input type="file" onChange={handleFileUpload} className="hidden" disabled={isFileUploading} />
                     </label>
                     {form.file_path && (
-                      <div className="text-xs text-green-400 flex items-center gap-2"><FaCheckCircle /> File Uploaded ({form.file_path.split('/')[1]})</div>
+                      <div className="text-xs text-green-400 flex items-center gap-2"><FaCheckCircle /> File Uploaded</div>
                     )}
                   </div>
                   <p className="text-[10px] text-brand-muted mt-2">* This file is private and cannot be accessed without a valid purchase.</p>
@@ -267,16 +282,14 @@ export default function AdminThemesPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                   <div><label className="block text-xs text-brand-muted mb-2">Demo URL</label><input type="text" name="demo_url" value={form.demo_url} onChange={handleChange} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
-                  <div className="flex items-end">
-                    <div className="w-full">
-                       <label className="block text-xs text-brand-muted mb-2">Thumbnail Image</label>
-                       <div className="flex items-center gap-4">
-                        <label className="cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2 w-full justify-center">
-                          {isUploading ? "Uploading..." : <><FaUpload /> Thumbnail</>}
-                          <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={isUploading} />
-                        </label>
-                        {form.image_url && <img src={form.image_url} alt="Preview" className="h-10 w-10 object-cover rounded-lg border border-white/10" />}
-                      </div>
+                  <div>
+                    <label className="block text-xs text-brand-muted mb-2">Thumbnail Image</label>
+                    <div className="flex items-center gap-4">
+                      <label className="cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2 w-full justify-center">
+                        {isUploading ? "Uploading..." : <><FaUpload /> Thumbnail</>}
+                        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={isUploading} />
+                      </label>
+                      {form.image_url && <img src={form.image_url} alt="Preview" className="h-10 w-10 object-cover rounded-lg border border-white/10" />}
                     </div>
                   </div>
                 </div>
@@ -289,7 +302,6 @@ export default function AdminThemesPage() {
           )}
         </AnimatePresence>
 
-        {/* থিম লিস্ট */}
         <div className="relative mb-6">
           <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
           <input type="text" placeholder="Search themes..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-[#121214] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
