@@ -1,4 +1,4 @@
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config"; // 🚨 এখানে /config যোগ করুন
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -7,9 +7,6 @@ const nextConfig = {
       { protocol: "https", hostname: "**.supabase.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
-  },
-  experimental: {
-    webpackBuildWorker: true,
   },
 };
 
