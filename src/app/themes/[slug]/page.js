@@ -2,14 +2,14 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  FaCheckCircle, FaExternalLinkAlt, FaArrowLeft, FaCode, 
-  FaLayerGroup, FaMobileAlt, FaSearch, FaMoon, FaRocket, 
-  FaFileArchive, FaChrome, FaInfinity, FaCalendarAlt, 
-  FaShieldAlt, FaCrown, FaCheck, FaTools, FaFileAlt
+  FaCheckCircle, FaExternalLinkAlt, FaArrowLeft, FaCode, FaLayerGroup, 
+  FaMobileAlt, FaSearch, FaMoon, FaRocket, FaFileArchive, FaChrome, 
+  FaInfinity, FaCalendarAlt, FaShieldAlt, FaCrown, FaCheck, FaTools, FaFileAlt
 } from "react-icons/fa";
 import ThemeDetailActions from "@/components/ThemeDetailActions";
 import ReviewSection from "@/components/ReviewSection";
 import GallerySection from "@/components/GallerySection";
+import { getTechIcon, getTechColor } from "@/lib/iconMapper";
 
 async function getTheme(slug) {
   const supabase = await createClient();
@@ -109,20 +109,19 @@ export default async function ThemeDetailsPage({ params }) {
           </div>
         </div>
 
-        {/* 🚨 আপনার চাহিদা অনুযায়ী ২টি রো-তে ৪টি সেকশন */}
+        {/* ২টি রো-তে ৪টি সেকশন */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 items-stretch">
           
-          {/* প্রথম রো: বামে Description, ডানে Key Features */}
+          {/* Description */}
           <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-white/5 pb-3">
               <div className="w-9 h-9 bg-blue-500/10 text-blue-500 rounded-lg flex items-center justify-center"><FaFileAlt /></div>
               <h2 className="text-base font-bold text-gray-900 dark:text-white">Description</h2>
             </div>
-            <p className="text-gray-600 dark:text-brand-muted text-sm leading-relaxed">
-              {theme.description}
-            </p>
+            <p className="text-gray-600 dark:text-brand-muted text-sm leading-relaxed">{theme.description}</p>
           </div>
 
+          {/* Key Features */}
           <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-white/5 pb-3">
               <div className="w-9 h-9 bg-brand-gold/10 text-brand-gold rounded-lg flex items-center justify-center"><FaLayerGroup /></div>
@@ -138,7 +137,7 @@ export default async function ThemeDetailsPage({ params }) {
             </ul>
           </div>
 
-          {/* দ্বিতীয় রো: বামে Tech Stack, ডানে Tools Used */}
+          {/* Technology Stack (আইকনসহ) */}
           <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-white/5 pb-3">
               <div className="w-9 h-9 bg-cyan-500/10 text-cyan-500 rounded-lg flex items-center justify-center"><FaCode /></div>
@@ -146,7 +145,9 @@ export default async function ThemeDetailsPage({ params }) {
             </div>
             <div className="flex flex-wrap gap-2">
               {technologies.length > 0 ? technologies.map((tech, i) => (
-                <span key={i} className="bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white px-3 py-1.5 rounded-lg text-xs font-semibold">{tech}</span>
+                <span key={i} className={`bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 ${getTechColor(tech)}`}>
+                  {getTechIcon(tech)} {tech}
+                </span>
               )) : <p className="text-gray-500 text-sm">No tech stack listed.</p>}
             </div>
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/5 space-y-2">
@@ -155,6 +156,7 @@ export default async function ThemeDetailsPage({ params }) {
             </div>
           </div>
 
+          {/* Tools Used (আইকনসহ) */}
           <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-white/5 pb-3">
               <div className="w-9 h-9 bg-purple-500/10 text-purple-500 rounded-lg flex items-center justify-center"><FaTools /></div>
@@ -163,7 +165,9 @@ export default async function ThemeDetailsPage({ params }) {
             <div className="grid grid-cols-1 gap-2">
                {technologies.length > 0 ? technologies.map((tech, i) => (
                  <div key={i} className="flex items-center gap-2.5 bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 rounded-lg p-2.5">
-                   <div className="w-7 h-7 rounded-md bg-gray-100 dark:bg-white/5 flex items-center justify-center text-brand-gold flex-shrink-0"><FaCode size={12} /></div>
+                   <div className={`w-7 h-7 rounded-md bg-gray-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0 ${getTechColor(tech)}`}>
+                     {getTechIcon(tech)}
+                   </div>
                    <span className="text-xs font-semibold text-gray-900 dark:text-white">{tech}</span>
                  </div>
                )) : <p className="text-gray-500 text-sm">No tools listed.</p>}
@@ -171,7 +175,7 @@ export default async function ThemeDetailsPage({ params }) {
           </div>
         </div>
 
-        {/* File Included Details */}
+        {/* File Included */}
         <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 mb-8">
           <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">File Included</h3>
           <div className="flex flex-wrap gap-2">

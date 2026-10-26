@@ -29,7 +29,7 @@ export default function AdminThemesPage() {
   const [form, setForm] = useState({
     title: "", slug: "", category_id: "", price: "", old_price: "",
     description: "", image_url: "", demo_url: "#", file_path: "", 
-    featuresText: "", technologiesText: "", gallery_images: [], 
+    featuresList: [""], technologiesList: [""], gallery_images: [], 
     file_included: "", browser_support: "", responsive: "Mobile & Tablet",
     updates: "Lifetime Free", is_premium: false
   });
@@ -56,6 +56,22 @@ export default function AdminThemesPage() {
     });
   };
 
+  // ডাইনামিক লিস্ট হ্যান্ডলার (Features & Technologies)
+  const handleListChange = (listName, index, value) => {
+    const newList = [...form[listName]];
+    newList[index] = value;
+    setForm({ ...form, [listName]: newList });
+  };
+
+  const addListItem = (listName) => {
+    setForm({ ...form, [listName]: [...form[listName], ""] });
+  };
+
+  const removeListItem = (listName, index) => {
+    const newList = form[listName].filter((_, i) => i !== index);
+    setForm({ ...form, [listName]: newList.length > 0 ? newList : [""] });
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -76,13 +92,9 @@ export default function AdminThemesPage() {
     try {
       const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
       const filePath = `themes/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("secure-downloads")
-        .upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.from("secure-downloads").upload(filePath, file);
       
       if (uploadError) { 
-        console.error("Upload error:", uploadError);
         showAlert("File upload failed: " + uploadError.message, "error");
         setIsFileUploading(false); 
         return; 
@@ -91,7 +103,6 @@ export default function AdminThemesPage() {
       setForm(prevForm => ({ ...prevForm, file_path: filePath }));
       showAlert("File uploaded securely!", "success");
     } catch (err) {
-      console.error("Catch error:", err);
       showAlert("Something went wrong during upload", "error");
     } finally {
       setIsFileUploading(false);
@@ -126,8 +137,9 @@ export default function AdminThemesPage() {
 
     setIsSubmitting(true);
     
-    const featuresArray = form.featuresText.split(",").map(f => f.trim()).filter(f => f !== "");
-    const technologiesArray = form.technologiesText.split(",").map(t => t.trim()).filter(t => t !== "");
+    // খালি ইনপুট ফিল্টার করে অ্যারেতে রূপান্তর
+    const featuresArray = form.featuresList.filter(f => f.trim() !== "");
+    const technologiesArray = form.technologiesList.filter(t => t.trim() !== "");
 
     const themeData = {
       title: form.title.trim(),
@@ -149,7 +161,6 @@ export default function AdminThemesPage() {
       is_premium: form.is_premium,
     };
 
-    // Zod ভ্যালিডেশন
     try {
       themeSchema.parse(themeData);
     } catch (validationError) {
@@ -188,8 +199,8 @@ export default function AdminThemesPage() {
       price: theme.price, old_price: theme.old_price || "",
       description: theme.description, image_url: theme.image_url, demo_url: theme.demo_url || "#", 
       file_path: theme.file_path || "", 
-      featuresText: theme.features ? theme.features.join(", ") : "",
-      technologiesText: theme.technologies ? theme.technologies.join(", ") : "",
+      featuresList: theme.features && theme.features.length > 0 ? theme.features : [""],
+      technologiesList: theme.technologies && theme.technologies.length > 0 ? theme.technologies : [""],
       gallery_images: theme.gallery_images || [],
       file_included: theme.file_included || "", browser_support: theme.browser_support || "", 
       responsive: theme.responsive || "Mobile & Tablet", updates: theme.updates || "Lifetime Free", 
@@ -202,7 +213,7 @@ export default function AdminThemesPage() {
 
   const closeForm = () => {
     setShowForm(false); setEditingId(null);
-    setForm({ title: "", slug: "", category_id: "", price: "", old_price: "", description: "", image_url: "", demo_url: "#", file_path: "", featuresText: "", technologiesText: "", gallery_images: [], file_included: "", browser_support: "", responsive: "Mobile & Tablet", updates: "Lifetime Free", is_premium: false });
+    setForm({ title: "", slug: "", category_id: "", price: "", old_price: "", description: "", image_url: "", demo_url: "#", file_path: "", featuresList: [""], technologiesList: [""], gallery_images: [], file_included: "", browser_support: "", responsive: "Mobile & Tablet", updates: "Lifetime Free", is_premium: false });
   };
 
   const handleDelete = async (id, imageUrl) => {
@@ -254,9 +265,40 @@ export default function AdminThemesPage() {
                 </div>
 
                 <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Description</label><textarea name="description" value={form.description} onChange={handleChange} required rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
-                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Key Features (Comma separated)</label><textarea name="featuresText" value={form.featuresText} onChange={handleChange} rows="2" placeholder="Responsive, SEO Optimized, Dark Mode" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
-                <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Technology Stack (Comma separated)</label><textarea name="technologiesText" value={form.technologiesText} onChange={handleChange} rows="2" placeholder="Next.js, Tailwind CSS, Supabase" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
 
+                {/* 🚨 Features List (Dynamic Inputs) */}
+                <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="block text-xs text-brand-muted">Key Features (One per line)</label>
+                    <button type="button" onClick={() => addListItem('featuresList')} className="text-xs text-brand-gold flex items-center gap-1 hover:underline"><FaPlus size={10}/> Add Feature</button>
+                  </div>
+                  <div className="space-y-2">
+                    {form.featuresList.map((feature, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input type="text" value={feature} onChange={(e) => handleListChange('featuresList', index, e.target.value)} placeholder="e.g. Responsive Design" className="w-full bg-[#121214] border border-white/10 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-brand-gold" />
+                        <button type="button" onClick={() => removeListItem('featuresList', index)} className="text-red-400 hover:text-red-300 flex-shrink-0"><FaTrash size={12} /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 🚨 Technologies List (Dynamic Inputs) */}
+                <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="block text-xs text-brand-muted">Technology Stack (One per line)</label>
+                    <button type="button" onClick={() => addListItem('technologiesList')} className="text-xs text-brand-gold flex items-center gap-1 hover:underline"><FaPlus size={10}/> Add Tech</button>
+                  </div>
+                  <div className="space-y-2">
+                    {form.technologiesList.map((tech, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input type="text" value={tech} onChange={(e) => handleListChange('technologiesList', index, e.target.value)} placeholder="e.g. Next.js" className="w-full bg-[#121214] border border-white/10 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-brand-gold" />
+                        <button type="button" onClick={() => removeListItem('technologiesList', index)} className="text-red-400 hover:text-red-300 flex-shrink-0"><FaTrash size={12} /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* বাকি ফিল্ডগুলো আগের মতোই */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
                   <div><label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaFileArchive /> Files Included</label><input type="text" name="file_included" value={form.file_included} onChange={handleChange} placeholder="HTML, CSS, JS, Figma" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                   <div><label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaChrome /> Browser Support</label><input type="text" name="browser_support" value={form.browser_support} onChange={handleChange} placeholder="Chrome, Safari, Edge" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
@@ -271,11 +313,8 @@ export default function AdminThemesPage() {
                       {isFileUploading ? "Uploading..." : <><FaUpload /> Upload Secure File</>}
                       <input type="file" onChange={handleFileUpload} className="hidden" disabled={isFileUploading} />
                     </label>
-                    {form.file_path && (
-                      <div className="text-xs text-green-400 flex items-center gap-2"><FaCheckCircle /> File Uploaded</div>
-                    )}
+                    {form.file_path && (<div className="text-xs text-green-400 flex items-center gap-2"><FaCheckCircle /> File Uploaded</div>)}
                   </div>
-                  <p className="text-[10px] text-brand-muted mt-2">* This file is private and cannot be accessed without a valid purchase.</p>
                 </div>
 
                 <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
