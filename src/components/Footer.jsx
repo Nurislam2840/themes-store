@@ -23,116 +23,99 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="relative bg-white dark:bg-[#0A0A0C] border-t border-gray-200 dark:border-white/5 pt-16 pb-8 overflow-hidden transition-colors duration-300">
+    <footer className="relative bg-white dark:bg-[#0A0A0C] border-t border-gray-200 dark:border-white/5 pt-12 md:pt-16 pb-8 overflow-hidden transition-colors duration-300">
       
-      <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
         
         {/* Newsletter Section */}
-        <div className="bg-gray-50 dark:bg-gradient-to-r dark:from-[#121214] dark:to-[#0A0A0C] border border-gray-200 dark:border-white/5 rounded-2xl p-6 md:p-8 mb-12 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-sm">
-          <div className="text-center lg:text-left">
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">Stay in the loop</h3>
-            <p className="text-gray-500 dark:text-brand-muted text-sm max-w-md">Get the latest updates on new theme releases and premium resources.</p>
+        <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-2xl p-6 md:p-8 mb-10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="text-center md:text-left">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Stay in the loop</h3>
+            <p className="text-gray-500 dark:text-brand-muted text-xs md:text-sm">Get the latest updates on new theme releases.</p>
           </div>
-          <form className="w-full lg:w-auto flex items-center bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 rounded-xl p-1.5 focus-within:border-brand-gold transition-colors shadow-sm">
+          <form className="w-full md:w-auto flex items-center bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 rounded-lg p-1">
             <input 
               type="email" 
               placeholder="Enter your email" 
-              className="bg-transparent text-gray-900 dark:text-white text-sm px-3 md:px-4 py-2.5 outline-none w-full lg:w-64 placeholder:text-gray-400"
+              className="bg-transparent text-gray-900 dark:text-white text-xs px-3 py-2 outline-none w-full md:w-56 placeholder:text-gray-400"
             />
-            <button type="submit" className="bg-brand-gold hover:bg-brand-gold-hover text-black p-2.5 md:p-3 rounded-lg transition-colors flex items-center justify-center flex-shrink-0">
-              <FaArrowRight size={14} />
+            <button type="submit" className="bg-brand-gold hover:bg-brand-gold-hover text-black p-2 rounded-md transition-colors flex items-center justify-center flex-shrink-0">
+              <FaArrowRight size={12} />
             </button>
           </form>
         </div>
 
-        {/* Main Footer Grid: Mobile=1 Col, Tablet=2 Col, Desktop=4 Col */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 mb-12">
+        {/* 🚨 ১ কলাম মোবাইলে, ২ কলাম ট্যাবে, ৪ কলাম ডেস্কটপে */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
           
           {/* Brand Info */}
-          <div className="flex flex-col">
-            <Link href="/" className="flex items-center gap-2 mb-4 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-brand-gold to-yellow-300 rounded-xl flex items-center justify-center text-brand-dark font-black text-xl shadow-[0_0_20px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-transform">T</div>
-              <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Themes<span className="text-brand-gold">Store</span></span>
+          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+            <Link href="/" className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-brand-gold text-black rounded-lg flex items-center justify-center font-bold text-lg">T</div>
+              <span className="text-lg font-bold text-gray-900 dark:text-white">Themes<span className="text-brand-gold">Store</span></span>
             </Link>
-            <p className="text-gray-500 dark:text-brand-muted text-sm leading-relaxed mb-6">
-              Discover the best premium themes for your next big project. Beautifully designed, highly optimized.
+            <p className="text-gray-500 dark:text-brand-muted text-xs leading-relaxed mb-4">
+              Discover the best premium themes for your project.
             </p>
-            <div className="flex items-center gap-2 mt-auto">
-              {settings?.facebook && <a href={settings.facebook} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-600 dark:text-white hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] transition-all"><FaFacebookF size={12} /></a>}
-              {settings?.twitter && <a href={settings.twitter} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-600 dark:text-white hover:bg-[#1DA1F2] hover:text-white hover:border-[#1DA1F2] transition-all"><FaTwitter size={12} /></a>}
-              {settings?.instagram && <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-600 dark:text-white hover:bg-[#E1306C] hover:text-white hover:border-[#E1306C] transition-all"><FaInstagram size={12} /></a>}
-              {settings?.linkedin && <a href={settings.linkedin} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-600 dark:text-white hover:bg-[#0A66C2] hover:text-white hover:border-[#0A66C2] transition-all"><FaLinkedinIn size={12} /></a>}
+            <div className="flex items-center gap-2">
+              {settings?.facebook && <a href={settings.facebook} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-white hover:text-brand-gold"><FaFacebookF size={12} /></a>}
+              {settings?.twitter && <a href={settings.twitter} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-white hover:text-brand-gold"><FaTwitter size={12} /></a>}
+              {settings?.instagram && <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-white hover:text-brand-gold"><FaInstagram size={12} /></a>}
+              {settings?.linkedin && <a href={settings.linkedin} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-white hover:text-brand-gold"><FaLinkedinIn size={12} /></a>}
             </div>
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h4 className="text-gray-900 dark:text-white font-bold text-base mb-4">Quick Links</h4>
-            <ul className="space-y-2.5">
-              <li><Link href="/" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">Home</Link></li>
-              <li><Link href="/themes" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">All Themes</Link></li>
-              <li><Link href="/pricing" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">Pricing</Link></li>
-              <li><Link href="/contact" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">Contact Us</Link></li>
+          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+            <h4 className="text-gray-900 dark:text-white font-bold text-sm mb-3">Quick Links</h4>
+            <ul className="space-y-2">
+              <li><Link href="/" className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">Home</Link></li>
+              <li><Link href="/themes" className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">All Themes</Link></li>
+              <li><Link href="/pricing" className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">Pricing</Link></li>
+              <li><Link href="/contact" className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">Contact Us</Link></li>
             </ul>
           </div>
 
           {/* Customer Area */}
-          <div>
-            <h4 className="text-gray-900 dark:text-white font-bold text-base mb-4">Customer Area</h4>
-            <ul className="space-y-2.5">
-              <li><Link href="/account/login" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">Login / Register</Link></li>
-              <li><Link href="/my-downloads" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">My Downloads</Link></li>
-              <li><Link href="/wishlist" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">Wishlist</Link></li>
-              <li><Link href="/security-policy" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">Security Policy</Link></li>
+          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+            <h4 className="text-gray-900 dark:text-white font-bold text-sm mb-3">Customer Area</h4>
+            <ul className="space-y-2">
+              <li><Link href="/account/login" className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">Login / Register</Link></li>
+              <li><Link href="/my-downloads" className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">My Downloads</Link></li>
+              <li><Link href="/wishlist" className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">Wishlist</Link></li>
+              <li><Link href="/security-policy" className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">Security Policy</Link></li>
             </ul>
           </div>
 
           {/* Contact Info */}
-          <div>
-            <h4 className="text-gray-900 dark:text-white font-bold text-base mb-4">Get in Touch</h4>
+          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+            <h4 className="text-gray-900 dark:text-white font-bold text-sm mb-3">Get in Touch</h4>
             <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-brand-gold/10 flex items-center justify-center text-brand-gold flex-shrink-0 mt-0.5">
-                  <FaMapMarkerAlt size={12} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400 dark:text-brand-muted mb-0.5">Our Location</p>
-                  <p className="text-gray-900 dark:text-white text-sm font-medium truncate">{settings?.location || "Dhaka, Bangladesh"}</p>
-                </div>
+              <li className="flex items-start justify-center sm:justify-start gap-2">
+                <FaMapMarkerAlt className="text-brand-gold mt-0.5" size={12} />
+                <span className="text-gray-500 dark:text-brand-muted text-xs break-all">{settings?.location || "Dhaka, Bangladesh"}</span>
               </li>
-              <li className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-brand-gold/10 flex items-center justify-center text-brand-gold flex-shrink-0 mt-0.5">
-                  <FaEnvelope size={12} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400 dark:text-brand-muted mb-0.5">Email Us</p>
-                  <a href={`mailto:${settings?.email}`} className="text-gray-900 dark:text-white text-sm font-medium hover:text-brand-gold transition-colors break-all">{settings?.email || "imdnur284@gmail.com"}</a>
-                </div>
+              <li className="flex items-start justify-center sm:justify-start gap-2">
+                <FaEnvelope className="text-brand-gold mt-0.5" size={12} />
+                <a href={`mailto:${settings?.email}`} className="text-gray-500 dark:text-brand-muted text-xs break-all hover:text-brand-gold">{settings?.email || "imdnur284@gmail.com"}</a>
               </li>
-              <li className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-brand-gold/10 flex items-center justify-center text-brand-gold flex-shrink-0 mt-0.5">
-                  <FaPhoneAlt size={12} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400 dark:text-brand-muted mb-0.5">Call / WhatsApp</p>
-                  <a href={`https://wa.me/${settings?.phone?.replace(/\D/g, '')}`} className="text-gray-900 dark:text-white text-sm font-medium hover:text-brand-gold transition-colors">{settings?.phone || "+880 1758 496622"}</a>
-                </div>
+              <li className="flex items-start justify-center sm:justify-start gap-2">
+                <FaPhoneAlt className="text-brand-gold mt-0.5" size={12} />
+                <a href={`https://wa.me/${settings?.phone?.replace(/\D/g, '')}`} className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">{settings?.phone || "+880 1758 496622"}</a>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-200 dark:border-white/5 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-500 dark:text-brand-muted text-xs text-center md:text-left flex items-center justify-center md:justify-start gap-1 flex-wrap">
-            &copy; {currentYear} ThemesStore. Designed with <FaHeart className="text-red-500 text-[10px] animate-pulse" /> by <span className="text-gray-900 dark:text-white hover:text-brand-gold transition-colors font-medium cursor-pointer">MD NUR ISLAM</span>
+        <div className="border-t border-gray-200 dark:border-white/5 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
+          <p className="text-gray-500 dark:text-brand-muted text-[10px] md:text-xs text-center md:text-left">
+            &copy; {currentYear} ThemesStore. Designed with <FaHeart className="text-red-500 inline text-[8px]" /> by MD NUR ISLAM
           </p>
-          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-brand-muted">
-            <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</Link>
+          <div className="flex items-center gap-3 text-[10px] md:text-xs text-gray-500 dark:text-brand-muted">
+            <Link href="/privacy" className="hover:text-brand-gold">Privacy Policy</Link>
             <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-white/20"></span>
-            <Link href="/terms" className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="/terms" className="hover:text-brand-gold">Terms of Service</Link>
           </div>
         </div>
       </div>
