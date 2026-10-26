@@ -1,0 +1,6 @@
+Contact: mailto:imdnur284@gmail.com
+Contact: https://wa.me/8801758496622
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en, bn
+Canonical: https://themes-store.vercel.app/.well-known/security.txt
+Policy: https://themes-store.vercel.app/security-policy
