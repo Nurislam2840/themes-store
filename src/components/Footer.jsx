@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-const supabase = createClient();
 import Link from "next/link";
 import { 
   FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, 
   FaEnvelope, FaPhoneAlt, FaMapMarkerAlt, 
   FaArrowRight, FaHeart 
 } from "react-icons/fa";
+
+const supabase = createClient();
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -24,22 +25,21 @@ export default function Footer() {
   return (
     <footer className="relative bg-white dark:bg-[#0A0A0C] border-t border-gray-200 dark:border-white/5 pt-16 pb-8 overflow-hidden transition-colors duration-300">
       
-      {/* Background Glow */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Newsletter Section */}
-        <div className="bg-gray-50 dark:bg-gradient-to-r dark:from-[#121214] dark:to-[#0A0A0C] border border-gray-200 dark:border-white/5 rounded-2xl p-6 md:p-8 mb-12 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-sm dark:shadow-2xl">
+        <div className="bg-gray-50 dark:bg-gradient-to-r dark:from-[#121214] dark:to-[#0A0A0C] border border-gray-200 dark:border-white/5 rounded-2xl p-6 md:p-8 mb-12 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-sm">
           <div className="text-center lg:text-left">
             <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">Stay in the loop</h3>
-            <p className="text-gray-500 dark:text-brand-muted text-sm max-w-md">Get the latest updates on new theme releases, exclusive discounts, and premium resources.</p>
+            <p className="text-gray-500 dark:text-brand-muted text-sm max-w-md">Get the latest updates on new theme releases and premium resources.</p>
           </div>
           <form className="w-full lg:w-auto flex items-center bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 rounded-xl p-1.5 focus-within:border-brand-gold transition-colors shadow-sm">
             <input 
               type="email" 
               placeholder="Enter your email" 
-              className="bg-transparent text-gray-900 dark:text-white text-sm px-3 md:px-4 py-2.5 outline-none w-full lg:w-64 placeholder:text-gray-400 dark:placeholder:text-brand-muted"
+              className="bg-transparent text-gray-900 dark:text-white text-sm px-3 md:px-4 py-2.5 outline-none w-full lg:w-64 placeholder:text-gray-400"
             />
             <button type="submit" className="bg-brand-gold hover:bg-brand-gold-hover text-black p-2.5 md:p-3 rounded-lg transition-colors flex items-center justify-center flex-shrink-0">
               <FaArrowRight size={14} />
@@ -48,7 +48,7 @@ export default function Footer() {
         </div>
 
         {/* Main Footer Grid: Mobile=1 Col, Tablet=2 Col, Desktop=4 Col */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 mb-12">
           
           {/* Brand Info */}
           <div className="flex flex-col">
@@ -85,6 +85,7 @@ export default function Footer() {
               <li><Link href="/account/login" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">Login / Register</Link></li>
               <li><Link href="/my-downloads" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">My Downloads</Link></li>
               <li><Link href="/wishlist" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">Wishlist</Link></li>
+              <li><Link href="/security-policy" className="text-gray-500 dark:text-brand-muted text-sm hover:text-brand-gold transition-colors">Security Policy</Link></li>
             </ul>
           </div>
 
