@@ -50,11 +50,12 @@ export default function GallerySection({ images }) {
             onClick={() => setSelectedImage(null)}
             className="fixed inset-0 z-[999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
           >
+            {/* ইমেজের কন্টেইনারে relative যোগ করা হয়েছে */}
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="relative max-w-full max-h-full w-[90vw] h-[90vh]"
+              className="relative w-full max-w-5xl h-[80vh]"
             >
               <Image
                 src={selectedImage}
@@ -66,7 +67,7 @@ export default function GallerySection({ images }) {
             </motion.div>
             <button
               onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
-              className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+              className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-50"
             >
               <FaTimes size={20} />
             </button>
