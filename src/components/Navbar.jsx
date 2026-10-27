@@ -8,6 +8,7 @@ import {
   FaSearch, FaHeart, FaUser, FaSignOutAlt, FaDownload, 
   FaChevronDown, FaBars, FaTimes, FaSun, FaMoon, FaAngleRight
 } from "react-icons/fa";
+import { useTheme } from "next-themes";
 import { useCartWishlistStore } from "@/store/cartWishlistStore";
 import { useCurrencyStore } from "@/store/currencyStore";
 import { createClient } from "@/lib/supabase/client";
@@ -18,28 +19,24 @@ import SearchModal from "@/components/SearchModal";
 export default function Navbar({ initialTheme = "dark" }) {
   const pathname = usePathname();
   const router = useRouter();
-  
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isThemesHovered, setIsThemesHovered] = useState(false);
-  
+
   const [menuLinks, setMenuLinks] = useState([]);
   const [categories, setCategories] = useState([]);
-  
-  const [theme, setTheme] = useState(initialTheme);
+
   const { currency, setCurrency } = useCurrencyStore();
   const cartCount = useCartWishlistStore((s) => s.cart.reduce((n, i) => n + i.quantity, 0));
   const wishCount = useCartWishlistStore((s) => s.wishlist.length);
 
-  // ✅ HTML classList helper (className overwrite এড়ানোর জন্য)
-  const applyThemeClass = (newTheme) => {
-    const el = document.documentElement;
-    el.classList.remove("light", "dark");
-    el.classList.add(newTheme);
-    el.classList.add("scroll-smooth");
-  };
+  // next-themes hydration-এর জন্য
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,10 +61,7 @@ export default function Navbar({ initialTheme = "dark" }) {
         if (profile?.role === "admin") { setUser(null); } 
         else {
           setUser(session.user);
-          if (profile?.theme && profile.theme !== theme) {
-            setTheme(profile.theme);
-            applyThemeClass(profile.theme);
-          }
+          if (profile?.theme) setTheme(profile.theme);
         }
       } else { setUser(null); }
     };
@@ -79,30 +73,25 @@ export default function Navbar({ initialTheme = "dark" }) {
         if (profile?.role === "admin") { setUser(null); } 
         else {
           setUser(session.user);
-          if (profile?.theme) {
-            setTheme(profile.theme);
-            applyThemeClass(profile.theme);
-          }
+          if (profile?.theme) setTheme(profile.theme);
         }
       } else { setUser(null); }
     });
     return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme]);
+  }, []);
 
   useEffect(() => { setIsMobileMenuOpen(false); setIsMenuOpen(false); }, [pathname]);
 
   const toggleTheme = async () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
-    applyThemeClass(newTheme);
     if (user) await supabase.from("profiles").update({ theme: newTheme }).eq("id", user.id);
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setTheme(initialTheme);
-    applyThemeClass(initialTheme);
     router.push("/");
     setIsMenuOpen(false); setIsMobileMenuOpen(false);
   };
@@ -162,9 +151,11 @@ export default function Navbar({ initialTheme = "dark" }) {
               <option value="INR" className="bg-white dark:bg-[#121214]">₹ INR</option>
             </select>
 
-            <button onClick={toggleTheme} className="p-1.5 text-gray-500 dark:text-brand-muted hover:text-brand-gold transition-all">
-              {theme === "dark" ? <FaSun size={16} /> : <FaMoon size={16} />}
-            </button>
+            {mounted && (
+              <button onClick={toggleTheme} className="p-1.5 text-gray-500 dark:text-brand-muted hover:text-brand-gold transition-all">
+                {theme === "dark" ? <FaSun size={16} /> : <FaMoon size={16} />}
+              </button>
+            )}
             <button onClick={() => setIsSearchOpen(true)} className="p-1.5 text-gray-500 dark:text-brand-muted hover:text-brand-gold transition-all"><FaSearch size={16} /></button>
             <Link href="/wishlist" className="relative p-1.5 text-gray-500 dark:text-brand-muted hover:text-brand-gold transition-all">
               <FaHeart size={16} />

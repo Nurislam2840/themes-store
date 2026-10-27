@@ -3,14 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaShoppingBag, FaTrash, FaPlus, FaMinus, FaTimes, FaSpinner, FaImage, FaLock } from "react-icons/fa";
+import { FaShoppingBag, FaTrash, FaPlus, FaMinus, FaTimes, FaSpinner, FaImage, FaLock, FaCoins } from "react-icons/fa";
 import { useCartWishlistStore } from "@/store/cartWishlistStore";
 import { useCurrencyStore } from "@/store/currencyStore";
 
 export default function CartDrawer({ cartCount }) {
   const [open, setOpen] = useState(false);
   const { cart, removeFromCart, updateQuantity, isHydrated } = useCartWishlistStore();
-  const { formatPrice } = useCurrencyStore();
+  const { currency, setCurrency, formatPrice } = useCurrencyStore();
   const total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
 
   return (
@@ -34,15 +34,33 @@ export default function CartDrawer({ cartCount }) {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed top-0 right-0 h-[100dvh] w-full sm:max-w-md bg-[#0E0E11]/95 backdrop-blur-2xl border-l border-white/10 z-[101] flex flex-col shadow-2xl"
             >
-              <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-white/5 bg-gradient-to-r from-[#121214] to-[#0E0E11]">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center"><FaShoppingBag className="text-brand-gold" size={18} /></div>
-                  <div>
-                    <h2 className="text-white font-bold text-xl tracking-tight">Your Cart</h2>
-                    <p className="text-brand-muted text-xs font-medium mt-0.5">{cart.reduce((s, i) => s + i.quantity, 0)} items added</p>
+              <div className="flex-shrink-0 p-6 border-b border-white/5 bg-gradient-to-r from-[#121214] to-[#0E0E11]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center"><FaShoppingBag className="text-brand-gold" size={18} /></div>
+                    <div>
+                      <h2 className="text-white font-bold text-xl tracking-tight">Your Cart</h2>
+                      <p className="text-brand-muted text-xs font-medium mt-0.5">{cart.reduce((s, i) => s + i.quantity, 0)} items added</p>
+                    </div>
                   </div>
+                  <button onClick={() => setOpen(false)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-brand-muted hover:text-white transition-all"><FaTimes size={16} /></button>
                 </div>
-                <button onClick={() => setOpen(false)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-brand-muted hover:text-white transition-all"><FaTimes size={16} /></button>
+
+                {/* কারেন্সি সিলেক্টর */}
+                <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-white/5">
+                  <FaCoins className="text-brand-gold text-xs" />
+                  <span className="text-brand-muted text-[10px] uppercase tracking-wider font-semibold">Currency:</span>
+                  <select
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value)}
+                    className="bg-[#09090B] border border-white/10 hover:border-brand-gold/50 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
+                  >
+                    <option value="BDT">৳ BDT</option>
+                    <option value="USD">$ USD</option>
+                    <option value="EUR">€ EUR</option>
+                    <option value="INR">₹ INR</option>
+                  </select>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 bg-[#0E0E11]">
