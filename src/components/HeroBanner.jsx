@@ -1,5 +1,7 @@
+// src/components/HeroBanner.jsx
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 const supabase = createClient();
 import Link from "next/link";
@@ -42,13 +44,20 @@ export default function HeroBanner() {
         loop={true}
         className="w-full h-[450px] sm:h-[500px] md:aspect-video md:h-auto" 
       >
-        {banners.map((banner) => (
+        {banners.map((banner, idx) => (
           <SwiperSlide key={banner.id}>
             {({ isActive }) => (
               <div className="relative w-full h-full flex items-center overflow-hidden">
                 
                 <div className="absolute inset-0">
-                  <img src={banner.image_url} alt={banner.title} className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-out ${isActive ? "scale-105" : "scale-100"}`} />
+                  <Image
+                    src={banner.image_url}
+                    alt={banner.title}
+                    fill
+                    priority={idx === 0}
+                    sizes="100vw"
+                    className={`object-cover transition-transform duration-[10000ms] ease-out ${isActive ? "scale-105" : "scale-100"}`}
+                  />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#09090B] via-[#09090B]/80 to-transparent"></div>
                   <div className="absolute inset-0 bg-gradient-to-t from-[#09090B] via-transparent to-transparent"></div>
                 </div>

@@ -1,13 +1,16 @@
+// src/components/CartDrawer.jsx
 "use client";
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaShoppingBag, FaTrash, FaPlus, FaMinus, FaTimes, FaSpinner, FaImage, FaLock } from "react-icons/fa";
 import { useCartWishlistStore } from "@/store/cartWishlistStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 
 export default function CartDrawer({ cartCount }) {
   const [open, setOpen] = useState(false);
   const { cart, removeFromCart, updateQuantity, isHydrated } = useCartWishlistStore();
+  const { formatPrice } = useCurrencyStore();
   const total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
 
   return (
@@ -69,7 +72,7 @@ export default function CartDrawer({ cartCount }) {
                         <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
                           <div>
                             <Link href={`/themes/${item.slug}`} onClick={() => setOpen(false)} className="text-white text-sm font-bold line-clamp-1 hover:text-brand-gold transition-colors">{item.title}</Link>
-                            <p className="text-brand-gold font-bold text-sm mt-1">৳{item.price.toFixed(2)}</p>
+                            <p className="text-brand-gold font-bold text-sm mt-1">{formatPrice(item.price)}</p>
                           </div>
                           
                           <div className="flex items-center justify-between mt-3">
@@ -90,9 +93,9 @@ export default function CartDrawer({ cartCount }) {
               {cart.length > 0 && (
                 <div className="flex-shrink-0 border-t border-white/5 p-6 bg-[#0E0E11] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
                   <div className="space-y-2 mb-5">
-                    <div className="flex justify-between text-sm text-brand-muted"><span>Subtotal</span><span>৳{total.toFixed(2)}</span></div>
+                    <div className="flex justify-between text-sm text-brand-muted"><span>Subtotal</span><span>{formatPrice(total)}</span></div>
                     <div className="flex justify-between text-sm text-brand-muted"><span>Tax & Fees</span><span className="text-green-400">Calculated at checkout</span></div>
-                    <div className="flex justify-between text-white font-bold text-lg pt-2 border-t border-white/5"><span>Total</span><span className="text-brand-gold">৳{total.toFixed(2)}</span></div>
+                    <div className="flex justify-between text-white font-bold text-lg pt-2 border-t border-white/5"><span>Total</span><span className="text-brand-gold">{formatPrice(total)}</span></div>
                   </div>
 
                   <Link href="/checkout" onClick={() => setOpen(false)} className="relative group block w-full bg-gold-gradient text-black font-bold text-center py-4 rounded-xl overflow-hidden transition-transform hover:scale-[1.02]">

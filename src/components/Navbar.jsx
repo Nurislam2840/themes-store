@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -32,6 +33,14 @@ export default function Navbar({ initialTheme = "dark" }) {
   const cartCount = useCartWishlistStore((s) => s.cart.reduce((n, i) => n + i.quantity, 0));
   const wishCount = useCartWishlistStore((s) => s.wishlist.length);
 
+  // ✅ HTML classList helper (className overwrite এড়ানোর জন্য)
+  const applyThemeClass = (newTheme) => {
+    const el = document.documentElement;
+    el.classList.remove("light", "dark");
+    el.classList.add(newTheme);
+    el.classList.add("scroll-smooth");
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const { data: menus } = await supabase.from("menus").select("*").order("order_index");
@@ -57,7 +66,7 @@ export default function Navbar({ initialTheme = "dark" }) {
           setUser(session.user);
           if (profile?.theme && profile.theme !== theme) {
             setTheme(profile.theme);
-            document.documentElement.className = `scroll-smooth ${profile.theme}`;
+            applyThemeClass(profile.theme);
           }
         }
       } else { setUser(null); }
@@ -72,12 +81,13 @@ export default function Navbar({ initialTheme = "dark" }) {
           setUser(session.user);
           if (profile?.theme) {
             setTheme(profile.theme);
-            document.documentElement.className = `scroll-smooth ${profile.theme}`;
+            applyThemeClass(profile.theme);
           }
         }
       } else { setUser(null); }
     });
     return () => subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
 
   useEffect(() => { setIsMobileMenuOpen(false); setIsMenuOpen(false); }, [pathname]);
@@ -85,20 +95,14 @@ export default function Navbar({ initialTheme = "dark" }) {
   const toggleTheme = async () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
-    if (newTheme === "light") {
-      document.documentElement.classList.add("light");
-      document.documentElement.classList.remove("dark");
-    } else {
-      document.documentElement.classList.add("dark");
-      document.documentElement.classList.remove("light");
-    }
+    applyThemeClass(newTheme);
     if (user) await supabase.from("profiles").update({ theme: newTheme }).eq("id", user.id);
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setTheme(initialTheme);
-    document.documentElement.className = `scroll-smooth ${initialTheme}`;
+    applyThemeClass(initialTheme);
     router.push("/");
     setIsMenuOpen(false); setIsMobileMenuOpen(false);
   };

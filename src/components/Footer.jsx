@@ -1,18 +1,23 @@
+// src/components/Footer.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
 import { 
   FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, 
   FaEnvelope, FaPhoneAlt, FaMapMarkerAlt, 
-  FaArrowRight, FaHeart 
+  FaArrowRight, FaHeart, FaSpinner 
 } from "react-icons/fa";
 
 const supabase = createClient();
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const { showAlert } = useAlert();
   const [settings, setSettings] = useState(null);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -21,6 +26,24 @@ export default function Footer() {
     };
     fetchSettings();
   }, []);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!newsletterEmail || !/^\S+@\S+\.\S+$/.test(newsletterEmail)) {
+      showAlert("Please enter a valid email address", "error");
+      return;
+    }
+    setSubscribing(true);
+    // এখানে আপনি চাইলে newsletter_subscribers table-এ insert করতে পারেন
+    // উদাহরণ:
+    // await supabase.from("newsletter_subscribers").insert([{ email: newsletterEmail }]);
+    await new Promise((r) => setTimeout(r, 500)); // demo delay
+    setSubscribing(false);
+    setNewsletterEmail("");
+    showAlert("Subscribed successfully!", "success");
+  };
+
+  const phoneDigits = settings?.phone?.replace?.(/\D/g, "") ?? "8801758496622";
 
   return (
     <footer className="relative bg-white dark:bg-[#0A0A0C] border-t border-gray-200 dark:border-white/5 pt-12 md:pt-16 pb-8 overflow-hidden transition-colors duration-300">
@@ -33,19 +56,20 @@ export default function Footer() {
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Stay in the loop</h3>
             <p className="text-gray-500 dark:text-brand-muted text-xs md:text-sm">Get the latest updates on new theme releases.</p>
           </div>
-          <form className="w-full md:w-auto flex items-center bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 rounded-lg p-1">
+          <form onSubmit={handleSubscribe} className="w-full md:w-auto flex items-center bg-white dark:bg-[#09090B] border border-gray-200 dark:border-white/10 rounded-lg p-1">
             <input 
               type="email" 
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
               placeholder="Enter your email" 
               className="bg-transparent text-gray-900 dark:text-white text-xs px-3 py-2 outline-none w-full md:w-56 placeholder:text-gray-400"
             />
-            <button type="submit" className="bg-brand-gold hover:bg-brand-gold-hover text-black p-2 rounded-md transition-colors flex items-center justify-center flex-shrink-0">
-              <FaArrowRight size={12} />
+            <button type="submit" disabled={subscribing} className="bg-brand-gold hover:bg-brand-gold-hover disabled:opacity-60 text-black p-2 rounded-md transition-colors flex items-center justify-center flex-shrink-0">
+              {subscribing ? <FaSpinner className="animate-spin" size={12} /> : <FaArrowRight size={12} />}
             </button>
           </form>
         </div>
 
-        {/* 🚨 ১ কলাম মোবাইলে, ২ কলাম ট্যাবে, ৪ কলাম ডেস্কটপে */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
           
           {/* Brand Info */}
@@ -97,11 +121,11 @@ export default function Footer() {
               </li>
               <li className="flex items-start justify-center sm:justify-start gap-2">
                 <FaEnvelope className="text-brand-gold mt-0.5" size={12} />
-                <a href={`mailto:${settings?.email}`} className="text-gray-500 dark:text-brand-muted text-xs break-all hover:text-brand-gold">{settings?.email || "imdnur284@gmail.com"}</a>
+                <a href={`mailto:${settings?.email || "imdnur284@gmail.com"}`} className="text-gray-500 dark:text-brand-muted text-xs break-all hover:text-brand-gold">{settings?.email || "imdnur284@gmail.com"}</a>
               </li>
               <li className="flex items-start justify-center sm:justify-start gap-2">
                 <FaPhoneAlt className="text-brand-gold mt-0.5" size={12} />
-                <a href={`https://wa.me/${settings?.phone?.replace(/\D/g, '')}`} className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">{settings?.phone || "+880 1758 496622"}</a>
+                <a href={`https://wa.me/${phoneDigits}`} className="text-gray-500 dark:text-brand-muted text-xs hover:text-brand-gold">{settings?.phone || "+880 1758 496622"}</a>
               </li>
             </ul>
           </div>

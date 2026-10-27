@@ -1,5 +1,7 @@
+// src/components/GallerySection.jsx
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { FaTimes, FaImage } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -25,18 +27,20 @@ export default function GallerySection({ images }) {
           <div
             key={i}
             onClick={() => setSelectedImage(img)}
-            className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-white/5 group cursor-pointer"
+            className="relative aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-white/5 group cursor-pointer"
           >
-            <img
+            <Image
               src={img}
               alt={`Screenshot ${i + 1}`}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              fill
+              sizes="(max-width: 768px) 50vw, 33vw"
+              className="object-cover group-hover:scale-110 transition-transform duration-500"
             />
           </div>
         ))}
       </div>
 
-      {/* লাইটবক্স (মোডাল) */}
+      {/* লাইটবক্স */}
       <AnimatePresence>
         {selectedImage && (
           <motion.div
@@ -46,14 +50,20 @@ export default function GallerySection({ images }) {
             onClick={() => setSelectedImage(null)}
             className="fixed inset-0 z-[999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
           >
-            <motion.img
+            <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              src={selectedImage}
-              alt="Full Preview"
-              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-            />
+              className="relative max-w-full max-h-full w-[90vw] h-[90vh]"
+            >
+              <Image
+                src={selectedImage}
+                alt="Full Preview"
+                fill
+                sizes="90vw"
+                className="object-contain rounded-lg shadow-2xl"
+              />
+            </motion.div>
             <button
               onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
               className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"

@@ -1,3 +1,4 @@
+// src/app/api/download/route.js
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { orderSchema } from "@/lib/validations/themeSchema";
@@ -44,6 +45,12 @@ export async function POST(req) {
     let finalPath = theme.file_path;
     if (!finalPath.startsWith("themes/")) {
       finalPath = `themes/${finalPath}`;
+    }
+
+    // ✅ Path traversal protection
+    if (finalPath.includes("..") || finalPath.startsWith("/") || finalPath.includes("\\")) {
+      console.error("Suspicious path detected:", finalPath);
+      return NextResponse.json({ error: "Invalid file path." }, { status: 400 });
     }
 
     const { data: signedData, error } = await supabase.storage

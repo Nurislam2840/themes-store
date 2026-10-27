@@ -1,3 +1,4 @@
+// src/app/api/payment/success/route.js
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -15,7 +16,7 @@ export async function POST(req) {
     let cusName = null;
     let cusEmail = null;
     let cusPhone = null;
-    let val_id = null; // নতুন: ভ্যালিডেশন আইডি
+    let val_id = null;
 
     if (req.method === "POST") {
       try {
@@ -26,14 +27,14 @@ export async function POST(req) {
         cusName = formData.get("cus_name");
         cusEmail = formData.get("cus_email");
         cusPhone = formData.get("cus_phone");
-        val_id = formData.get("val_id"); // নতুন
+        val_id = formData.get("val_id");
       } catch (e) {}
     }
 
     if (!status) status = url.searchParams.get("status");
     if (!tran_id) tran_id = url.searchParams.get("tran_id");
     if (!amount) amount = url.searchParams.get("amount");
-    if (!val_id) val_id = url.searchParams.get("val_id"); // নতুন
+    if (!val_id) val_id = url.searchParams.get("val_id");
 
     const isValidStatus = status === "VALID" || status === "VALIDATED";
 
@@ -45,27 +46,26 @@ export async function POST(req) {
       return NextResponse.redirect(`${siteUrl}/checkout?status=fail`);
     }
 
-    // 🚨 সবচেয়ে গুরুত্বপূর্ণ ধাপ: SSLCommerz সার্ভারের সাথে সরাসরি ভ্যালিডেট করা
+    // ✅ SSLCommerz সার্ভারের সাথে ভ্যালিডেশন
     const validationParams = new URLSearchParams();
     validationParams.append("val_id", val_id);
     validationParams.append("store_id", process.env.SSLCOMMERZ_STORE_ID);
     validationParams.append("store_passwd", process.env.SSLCOMMERZ_STORE_PASSWORD);
     validationParams.append("format", "json");
 
+    const sslBase = process.env.SSLCOMMERZ_BASE_URL || "https://sandbox.sslcommerz.com";
     const validationRes = await fetch(
-      `https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php?${validationParams.toString()}`,
+      `${sslBase}/validator/api/validationserverAPI.php?${validationParams.toString()}`,
       { method: "GET" }
     );
     const validationData = await validationRes.json();
 
-    // চেক করা হচ্ছে SSLCommerz সত্যিই এই পেমেন্টকে VALID বলছে কিনা
     if (validationData.status !== "VALID" && validationData.status !== "VALIDATED") {
       console.error("Payment validation failed:", validationData);
       await supabaseAdmin.from("pending_orders").update({ status: "failed" }).eq("tran_id", tran_id);
       return NextResponse.redirect(`${siteUrl}/checkout?status=fail`);
     }
 
-    // চেক করা হচ্ছে পেমেন্টের অ্যামাউন্ট আমাদের ডাটাবেসের অ্যামাউন্টের সাথে মিলছে কিনা
     const { data: pending } = await supabaseAdmin
       .from("pending_orders")
       .select("*")
@@ -76,17 +76,31 @@ export async function POST(req) {
       return NextResponse.redirect(`${siteUrl}/checkout?status=error`);
     }
 
+    // ✅ Amount tampering check
     const paidAmount = parseFloat(validationData.amount);
     const expectedAmount = parseFloat(pending.amount);
 
-    // 🚨 অ্যামাউন্ট টেম্পারিং চেক
     if (Math.abs(paidAmount - expectedAmount) > 1) {
       console.error(`Amount mismatch: Paid ${paidAmount}, Expected ${expectedAmount}`);
       await supabaseAdmin.from("pending_orders").update({ status: "failed" }).eq("tran_id", tran_id);
       return NextResponse.redirect(`${siteUrl}/checkout?status=error`);
     }
 
+    // ✅ Duplicate prevention #1: pending_orders already completed
     if (pending.status === "completed") {
+      return NextResponse.redirect(`${siteUrl}/checkout/success?tran_id=${tran_id}`);
+    }
+
+    // ✅ Duplicate prevention #2: orders-এ same tran_id আগে থেকেই আছে কিনা
+    const { data: existingOrder } = await supabaseAdmin
+      .from("orders")
+      .select("id")
+      .eq("transaction_id", tran_id)
+      .maybeSingle();
+
+    if (existingOrder) {
+      // order আগেই insert হয়েছে, শুধু pending_orders আপডেট করে redirect
+      await supabaseAdmin.from("pending_orders").update({ status: "completed" }).eq("tran_id", tran_id);
       return NextResponse.redirect(`${siteUrl}/checkout/success?tran_id=${tran_id}`);
     }
 
@@ -97,12 +111,12 @@ export async function POST(req) {
       items = [];
     }
 
-    // অর্ডার সেভ করা
+    // অর্ডার সেভ
     const { error: orderError } = await supabaseAdmin.from("orders").insert([
       {
         theme_slug: items[0]?.slug ?? "",
         theme_title: items.map((i) => i.title).join(", "),
-        price: Number(amount || pending.amount),
+        price: Number(paidAmount),
         customer_name: cusName || pending.customer_name,
         customer_email: cusEmail || pending.customer_email,
         customer_phone: cusPhone || pending.customer_phone,

@@ -1,5 +1,7 @@
+// src/components/ThemeCard.jsx
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { FaArrowRight, FaStar, FaHeart, FaShoppingBag, FaCrown } from "react-icons/fa";
 import { useCartWishlistStore } from "@/store/cartWishlistStore";
@@ -37,7 +39,13 @@ export default function ThemeCard({ theme, index }) {
         </button>
 
         <Link href={`/themes/${theme.slug}`} className="relative block h-56 w-full overflow-hidden bg-gray-50 dark:bg-[#09090B] rounded-[1.5rem] shrink-0 z-10">
-          <img src={theme.image_url || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop"} alt={theme.title} className="w-full h-full object-cover opacity-95 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out" />
+          <Image
+            src={theme.image_url || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop"}
+            alt={theme.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover opacity-95 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-[#09090B]/80 via-transparent to-transparent opacity-60 pointer-events-none"></div>
 
           <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold px-4 py-1.5 rounded-full text-sm shadow-lg z-20 flex items-center gap-2">

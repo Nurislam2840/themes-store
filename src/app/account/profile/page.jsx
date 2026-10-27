@@ -1,19 +1,22 @@
+// src/app/account/profile/page.jsx
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 const supabase = createClient();
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FaUser, FaLock, FaArrowLeft, FaSave, FaSpinner } from "react-icons/fa";
+import { FaUser, FaLock, FaArrowLeft, FaSave, FaSpinner, FaPhone } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [mobile, setMobile] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [msg, setMsg] = useState({ type: "", text: "" });
 
   useEffect(() => {
@@ -24,13 +27,20 @@ export default function ProfilePage() {
         return;
       }
       setUser(session.user);
-      
-      // প্রোফাইল ডেটা আনা
-      const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+
+      // প্রোফাইল ডেটা আনা (register-এর সাথে consistent কলাম)
+      const { data } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, mobile")
+        .eq("id", session.user.id)
+        .single();
+
       if (data) {
-        setName(data.full_name || "");
-        setPhone(data.phone || "");
+        setFirstName(data.first_name || "");
+        setLastName(data.last_name || "");
+        setMobile(data.mobile || "");
       }
+      setInitialLoading(false);
     };
     fetchUser();
   }, [router]);
@@ -40,10 +50,22 @@ export default function ProfilePage() {
     setLoading(true);
     setMsg({ type: "", text: "" });
 
-    // নাম ও ফোন আপডেট
-    const { error: profileError } = await supabase.from("profiles").update({ full_name: name, phone }).eq("id", user.id);
-    
-    // পাসওয়ার্ড আপডেট (যদি দেওয়া থাকে)
+    // নাম, পদবি, মোবাইল আপডেট
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        first_name: firstName,
+        last_name: lastName,
+        mobile: mobile,
+      })
+      .eq("id", user.id);
+
+    if (profileError) {
+      setLoading(false);
+      return setMsg({ type: "error", text: profileError.message });
+    }
+
+    // পাসওয়ার্ড আপডেট (যদি দেওয়া থাকে)
     if (newPassword) {
       if (newPassword.length < 8) {
         setLoading(false);
@@ -58,11 +80,16 @@ export default function ProfilePage() {
     }
 
     setLoading(false);
-    if (profileError) setMsg({ type: "error", text: profileError.message });
-    else setMsg({ type: "success", text: "Profile updated successfully!" });
+    setMsg({ type: "success", text: "Profile updated successfully!" });
   };
 
-  if (!user) return <div className="min-h-screen bg-[#09090B] flex items-center justify-center"><FaSpinner className="text-4xl text-brand-gold animate-spin" /></div>;
+  if (initialLoading || !user) {
+    return (
+      <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
+        <FaSpinner className="text-4xl text-brand-gold animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#09090B] pt-28 pb-20 px-6 relative overflow-hidden">
@@ -93,15 +120,26 @@ export default function ProfilePage() {
           <form onSubmit={handleUpdateProfile} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm text-brand-muted mb-2">Full Name</label>
+                <label className="block text-sm text-brand-muted mb-2">First Name</label>
                 <div className="relative">
                   <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
-                  <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-[#09090B] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" placeholder="Your Name" />
+                  <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full bg-[#09090B] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" placeholder="John" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-brand-muted mb-2">Phone Number</label>
-                <input type="text" value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" placeholder="017XXXXXXXX" />
+                <label className="block text-sm text-brand-muted mb-2">Last Name</label>
+                <div className="relative">
+                  <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
+                  <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} className="w-full bg-[#09090B] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" placeholder="Doe" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-brand-muted mb-2">Mobile Number</label>
+              <div className="relative">
+                <FaPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
+                <input type="tel" value={mobile} onChange={e => setMobile(e.target.value)} className="w-full bg-[#09090B] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" placeholder="017XXXXXXXX" />
               </div>
             </div>
 
@@ -113,7 +151,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="w-full bg-brand-gold hover:bg-brand-gold-hover text-black font-bold py-3.5 rounded-xl flex items-center justify-center gap-2">
+            <button type="submit" disabled={loading} className="w-full bg-brand-gold hover:bg-brand-gold-hover text-black font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-70">
               <FaSave /> {loading ? "Saving..." : "Save Changes"}
             </button>
           </form>
