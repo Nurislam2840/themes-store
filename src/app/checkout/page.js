@@ -1,3 +1,4 @@
+// src/app/checkout/page.js
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -13,7 +14,7 @@ function CheckoutContent() {
   const { showAlert } = useAlert();
 
   const { cart, isHydrated } = useCartWishlistStore();
-  const singleSlug = searchParams.get("theme"); 
+  const singleSlug = searchParams.get("theme");
 
   const [singleTheme, setSingleTheme] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ function CheckoutContent() {
     const prefillEmail = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session && !session.user.is_anonymous) {
-        setForm(prev => ({ ...prev, email: session.user.email || "" }));
+        setForm((prev) => ({ ...prev, email: session.user.email || "" }));
       }
     };
     prefillEmail();
@@ -81,26 +82,20 @@ function CheckoutContent() {
         return;
       }
 
-      const bdtAmount = Math.round(total); // গুণ করা বন্ধ করা হলো
-      const userId = session.user.id;
-
+      // ✅ amount আর client থেকে যাচ্ছে না — server নিজেই হিসাব করবে
       const response = await fetch("/api/payment/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: bdtAmount,
           customerName: form.name,
           customerEmail: form.email || session.user.email,
           customerPhone: form.phone,
           customerAddress: form.address,
           items: items.map((i) => ({
-            themeId: i.themeId,
             slug: i.slug,
-            title: i.title,
-            price: i.price,
             quantity: i.quantity,
           })),
-          userId: userId,
+          userId: session.user.id,
         }),
       });
 

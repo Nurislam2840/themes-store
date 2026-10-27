@@ -1,6 +1,8 @@
+// src/providers/SessionProvider.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+
 const supabase = createClient();
 
 export function SessionProvider({ children }) {
@@ -9,33 +11,22 @@ export function SessionProvider({ children }) {
   useEffect(() => {
     let mounted = true;
 
-    const ensureSession = async () => {
+    const checkSession = async () => {
       try {
-        // ১. আগে চেক করি সেশন আছে কিনা
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-
-        if (!session) {
-          // ২. সেশন না থাকলে Anonymous Login
-          const { error } = await supabase.auth.signInAnonymously();
-          if (error) {
-            console.error("Anonymous login failed:", error.message);
-          }
-        }
+        // শুধু সেশন আছে কিনা চেক করি — অ্যানোনিমাস লগইন আর নেই
+        await supabase.auth.getSession();
       } catch (err) {
-        console.error("Session error:", err);
+        console.error("Session check error:", err);
       } finally {
         if (mounted) setIsReady(true);
       }
     };
 
-    ensureSession();
-    
+    checkSession();
+
     return () => { mounted = false; };
   }, []);
 
-  // সেশন তৈরি না হওয়া পর্যন্ত চিলড্রেন রেন্ডার হবে না (যাতে ডেটা লোডে সমস্যা না হয়)
   if (!isReady) {
     return (
       <div className="min-h-screen bg-brand-dark flex items-center justify-center">
