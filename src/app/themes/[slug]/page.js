@@ -1,3 +1,4 @@
+// src/app/themes/[slug]/page.js
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -49,7 +50,6 @@ export default async function ThemeDetailsPage({ params }) {
           <FaArrowLeft /> Back to Themes
         </Link>
 
-        {/* হিরো সেকশন */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 mb-16">
           <div className="relative rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-xl group">
             <img src={theme.image_url} alt={theme.title} className="w-full h-[300px] md:h-[500px] object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -85,7 +85,6 @@ export default async function ThemeDetailsPage({ params }) {
           </div>
         </div>
 
-        {/* স্পেসিফিকেশন কার্ড */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-10">
           <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-2xl p-4 text-center">
             <div className="text-brand-gold text-xl mb-2 flex justify-center"><FaFileArchive /></div>
@@ -109,10 +108,7 @@ export default async function ThemeDetailsPage({ params }) {
           </div>
         </div>
 
-        {/* ২টি রো-তে ৪টি সেকশন */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 items-stretch">
-          
-          {/* Description */}
           <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-white/5 pb-3">
               <div className="w-9 h-9 bg-blue-500/10 text-blue-500 rounded-lg flex items-center justify-center"><FaFileAlt /></div>
@@ -121,7 +117,6 @@ export default async function ThemeDetailsPage({ params }) {
             <p className="text-gray-600 dark:text-brand-muted text-sm leading-relaxed">{theme.description}</p>
           </div>
 
-          {/* Key Features */}
           <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-white/5 pb-3">
               <div className="w-9 h-9 bg-brand-gold/10 text-brand-gold rounded-lg flex items-center justify-center"><FaLayerGroup /></div>
@@ -137,7 +132,6 @@ export default async function ThemeDetailsPage({ params }) {
             </ul>
           </div>
 
-          {/* Technology Stack (আইকনসহ) */}
           <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-white/5 pb-3">
               <div className="w-9 h-9 bg-cyan-500/10 text-cyan-500 rounded-lg flex items-center justify-center"><FaCode /></div>
@@ -156,7 +150,6 @@ export default async function ThemeDetailsPage({ params }) {
             </div>
           </div>
 
-          {/* Tools Used (আইকনসহ) */}
           <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-4 border-b border-gray-200 dark:border-white/5 pb-3">
               <div className="w-9 h-9 bg-purple-500/10 text-purple-500 rounded-lg flex items-center justify-center"><FaTools /></div>
@@ -175,7 +168,6 @@ export default async function ThemeDetailsPage({ params }) {
           </div>
         </div>
 
-        {/* File Included */}
         <div className="bg-gray-50 dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 mb-8">
           <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">File Included</h3>
           <div className="flex flex-wrap gap-2">

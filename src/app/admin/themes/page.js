@@ -1,3 +1,4 @@
+// src/app/admin/themes/page.js
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -56,7 +57,6 @@ export default function AdminThemesPage() {
     });
   };
 
-  // ডাইনামিক লিস্ট হ্যান্ডলার (Features & Technologies)
   const handleListChange = (listName, index, value) => {
     const newList = [...form[listName]];
     newList[index] = value;
@@ -109,20 +109,25 @@ export default function AdminThemesPage() {
     }
   };
 
+  // ✅ গ্যালারি ইমেজ আপলোড ফাংশন ফিক্স করা হয়েছে
   const handleGalleryUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     setIsGalleryUploading(true);
+    
     const uploadedUrls = [];
     for (const file of files) {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
       const { error } = await supabase.storage.from("theme-images").upload(`gallery/${fileName}`, file);
+      
       if (!error) {
         const { data } = supabase.storage.from("theme-images").getPublicUrl(`gallery/${fileName}`);
         uploadedUrls.push(data.publicUrl);
       }
     }
-    setForm(prev => ({ ...prev, gallery_images: [...prev.gallery_images, ...uploadedUrls] }));
+    
+    // আগের ইমেজগুলোর সাথে নতুন ইমেজ যোগ করা হচ্ছে
+    setForm(prev => ({ ...prev, gallery_images: [...(prev.gallery_images || []), ...uploadedUrls] }));
     setIsGalleryUploading(false);
   };
 
@@ -137,7 +142,6 @@ export default function AdminThemesPage() {
 
     setIsSubmitting(true);
     
-    // খালি ইনপুট ফিল্টার করে অ্যারেতে রূপান্তর
     const featuresArray = form.featuresList.filter(f => f.trim() !== "");
     const technologiesArray = form.technologiesList.filter(t => t.trim() !== "");
 
@@ -153,7 +157,7 @@ export default function AdminThemesPage() {
       file_path: form.file_path,
       features: featuresArray,
       technologies: technologiesArray,
-      gallery_images: form.gallery_images,
+      gallery_images: form.gallery_images, // এখানে ইমেজের অ্যারে সেভ হবে
       file_included: form.file_included,
       browser_support: form.browser_support,
       responsive: form.responsive,
@@ -201,7 +205,7 @@ export default function AdminThemesPage() {
       file_path: theme.file_path || "", 
       featuresList: theme.features && theme.features.length > 0 ? theme.features : [""],
       technologiesList: theme.technologies && theme.technologies.length > 0 ? theme.technologies : [""],
-      gallery_images: theme.gallery_images || [],
+      gallery_images: theme.gallery_images || [], // এখানে এডিট করার সময় আগের ছবি লোড হবে
       file_included: theme.file_included || "", browser_support: theme.browser_support || "", 
       responsive: theme.responsive || "Mobile & Tablet", updates: theme.updates || "Lifetime Free", 
       is_premium: theme.is_premium
@@ -266,7 +270,6 @@ export default function AdminThemesPage() {
 
                 <div className="mb-5"><label className="block text-xs text-brand-muted mb-2">Description</label><textarea name="description" value={form.description} onChange={handleChange} required rows="2" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold"></textarea></div>
 
-                {/* 🚨 Features List (Dynamic Inputs) */}
                 <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-3">
                     <label className="block text-xs text-brand-muted">Key Features (One per line)</label>
@@ -282,7 +285,6 @@ export default function AdminThemesPage() {
                   </div>
                 </div>
 
-                {/* 🚨 Technologies List (Dynamic Inputs) */}
                 <div className="mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-3">
                     <label className="block text-xs text-brand-muted">Technology Stack (One per line)</label>
@@ -298,7 +300,6 @@ export default function AdminThemesPage() {
                   </div>
                 </div>
 
-                {/* বাকি ফিল্ডগুলো আগের মতোই */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 bg-[#09090B] border border-white/10 rounded-xl p-4">
                   <div><label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaFileArchive /> Files Included</label><input type="text" name="file_included" value={form.file_included} onChange={handleChange} placeholder="HTML, CSS, JS, Figma" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                   <div><label className="block text-xs text-brand-muted mb-2 flex items-center gap-2"><FaChrome /> Browser Support</label><input type="text" name="browser_support" value={form.browser_support} onChange={handleChange} placeholder="Chrome, Safari, Edge" className="w-full bg-[#121214] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
