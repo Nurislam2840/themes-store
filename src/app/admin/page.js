@@ -1,3 +1,4 @@
+// src/app/admin/page.js
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -8,9 +9,10 @@ import {
   FaSignOutAlt, FaLayerGroup, FaShoppingCart, FaStar, 
   FaHome, FaPlus, FaArrowRight, FaCrown, FaDollarSign, 
   FaUsers, FaBoxOpen, FaClock, FaCheckCircle, FaChartLine,
-  FaCog, FaTag, FaFileAlt, FaImage, FaChartBar, FaList, FaBars 
+  FaCog, FaTag, FaFileAlt, FaImage, FaChartBar, FaList, FaBars, FaChartPie
 } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ themes: 0, totalOrders: 0, pendingOrders: 0, reviews: 0, revenue: 0, customers: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
+  const [chartData, setChartData] = useState([]); // ✅ চার্ট ডেটা
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -27,7 +30,7 @@ export default function AdminPage() {
       if (profile?.role !== "admin") { await supabase.auth.signOut(); router.push("/admin/login"); return; }
       setUser(user);
 
-      const [ themesCount, ordersCount, pendingCount, reviewsCount, revenueData, customersData, recentOrdersData ] = await Promise.all([
+      const [ themesCount, ordersCount, pendingCount, reviewsCount, revenueData, customersData, recentOrdersData, allOrdersData ] = await Promise.all([
         supabase.from("themes").select("*", { count: "exact", head: true }),
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "approved"),
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending"),
@@ -35,6 +38,7 @@ export default function AdminPage() {
         supabase.from("orders").select("price").eq("status", "approved"),
         supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "customer"),
         supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(5),
+        supabase.from("orders").select("price, created_at").eq("status", "approved") // ✅ চার্টের জন্য সব অর্ডার
       ]);
 
       const totalRevenue = (revenueData.data || []).reduce((sum, o) => sum + Number(o.price || 0), 0);
@@ -44,6 +48,25 @@ export default function AdminPage() {
         reviews: reviewsCount.count || 0, revenue: totalRevenue, customers: customersData.count || 0,
       });
       setRecentOrders(recentOrdersData.data || []);
+
+      // ✅ গত ৭ দিনের রেভিনিউ চার্ট ডেটা তৈরি
+      if (allOrdersData.data) {
+        const last7Days = [...Array(7)].map((_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          return d.toISOString().split('T')[0];
+        }).reverse();
+
+        const chartDataFormatted = last7Days.map(date => {
+          const dayOrders = allOrdersData.data.filter(o => o.created_at.startsWith(date));
+          const revenue = dayOrders.reduce((sum, o) => sum + Number(o.price), 0);
+          return {
+            name: new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+            revenue: revenue
+          };
+        });
+        setChartData(chartDataFormatted);
+      }
       setLoading(false);
     };
     checkAdmin();
@@ -54,7 +77,7 @@ export default function AdminPage() {
   if (loading) return <div className="min-h-screen bg-brand-dark flex items-center justify-center"><div className="w-12 h-12 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div></div>;
 
   return (
-    <div className="min-h-screen bg-[#09090B] pt-28 pb-20 px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#09090B] pt-10 pb-20 px-6 relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -71,7 +94,7 @@ export default function AdminPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="relative bg-gradient-to-br from-brand-gold/15 via-[#121214] to-[#121214] border border-brand-gold/30 rounded-3xl p-6 overflow-hidden group">
             <div className="flex items-center justify-between mb-4 relative z-10"><div className="w-12 h-12 bg-brand-gold text-black rounded-2xl flex items-center justify-center text-xl"><FaDollarSign /></div><FaChartLine className="text-brand-gold/30 text-xl" /></div>
             <p className="text-brand-muted text-xs font-semibold uppercase mb-1 relative z-10">Total Revenue</p>
@@ -95,7 +118,35 @@ export default function AdminPage() {
           </motion.div>
         </div>
 
-        {/* Recent Orders */}
+        {/* ✅ Revenue Chart Section */}
+        <div className="bg-[#121214] border border-white/5 rounded-3xl p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2"><FaChartBar className="text-brand-gold" /> Revenue (Last 7 Days)</h2>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" stroke="#52525B" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#52525B" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `৳${value}`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272A" vertical={false} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#18181B', borderColor: '#27272A', borderRadius: '12px', color: '#fff' }}
+                  itemStyle={{ color: '#F59E0B', fontWeight: 'bold' }}
+                  formatter={(value) => [`৳${value}`, 'Revenue']}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Recent Orders & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
           <div className="lg:col-span-2 bg-[#121214] border border-white/5 rounded-3xl overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-white/5">
@@ -135,62 +186,18 @@ export default function AdminPage() {
         {/* Quick Actions */}
         <h2 className="text-xl font-bold text-white mb-5">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          
           <Link href="/admin/themes" className="group bg-[#121214] border border-white/5 hover:border-brand-gold/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
             <div className="w-12 h-12 bg-brand-gold/10 text-brand-gold rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaPlus /></div>
             <div><h3 className="font-bold text-white">Manage Themes</h3><p className="text-brand-muted text-xs">Add / edit themes</p></div>
           </Link>
-
           <Link href="/admin/categories" className="group bg-[#121214] border border-white/5 hover:border-teal-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
             <div className="w-12 h-12 bg-teal-500/10 text-teal-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaLayerGroup /></div>
             <div><h3 className="font-bold text-white">Manage Categories</h3><p className="text-brand-muted text-xs">Main & Sub categories</p></div>
           </Link>
-
-          <Link href="/admin/menus" className="group bg-[#121214] border border-white/5 hover:border-rose-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaBars /></div>
-            <div><h3 className="font-bold text-white">Manage Menus</h3><p className="text-brand-muted text-xs">Navigation links</p></div>
-          </Link>
-
           <Link href="/admin/orders" className="group bg-[#121214] border border-white/5 hover:border-yellow-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
             <div className="w-12 h-12 bg-yellow-500/10 text-yellow-500 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaShoppingCart /></div>
             <div><h3 className="font-bold text-white">Manage Orders</h3><p className="text-brand-muted text-xs">Approve purchases</p></div>
           </Link>
-
-          <Link href="/admin/reviews" className="group bg-[#121214] border border-white/5 hover:border-purple-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaStar /></div>
-            <div><h3 className="font-bold text-white">Manage Reviews</h3><p className="text-brand-muted text-xs">Moderate feedback</p></div>
-          </Link>
-
-          <Link href="/admin/settings" className="group bg-[#121214] border border-white/5 hover:border-cyan-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-cyan-500/10 text-cyan-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaCog /></div>
-            <div><h3 className="font-bold text-white">Site Settings</h3><p className="text-brand-muted text-xs">Contact info & socials</p></div>
-          </Link>
-
-          <Link href="/admin/pricing" className="group bg-[#121214] border border-white/5 hover:border-green-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-green-500/10 text-green-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaTag /></div>
-            <div><h3 className="font-bold text-white">Manage Pricing</h3><p className="text-brand-muted text-xs">Update pricing plans</p></div>
-          </Link>
-
-          <Link href="/admin/pages" className="group bg-[#121214] border border-white/5 hover:border-pink-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-pink-500/10 text-pink-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaFileAlt /></div>
-            <div><h3 className="font-bold text-white">Manage Pages</h3><p className="text-brand-muted text-xs">Privacy & Terms</p></div>
-          </Link>
-
-          <Link href="/admin/banners" className="group bg-[#121214] border border-white/5 hover:border-orange-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-orange-500/10 text-orange-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaImage /></div>
-            <div><h3 className="font-bold text-white">Hero Slider</h3><p className="text-brand-muted text-xs">Manage homepage banners</p></div>
-          </Link>
-
-          <Link href="/admin/stats" className="group bg-[#121214] border border-white/5 hover:border-blue-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaChartBar /></div>
-            <div><h3 className="font-bold text-white">Stats Section</h3><p className="text-brand-muted text-xs">Manage counters</p></div>
-          </Link>
-
-          <Link href="/admin/features" className="group bg-[#121214] border border-white/5 hover:border-indigo-500/50 rounded-2xl p-6 flex items-center gap-4 transition-all hover:-translate-y-1">
-            <div className="w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><FaList /></div>
-            <div><h3 className="font-bold text-white">Why Choose Us</h3><p className="text-brand-muted text-xs">Manage features</p></div>
-          </Link>
-
         </div>
       </div>
     </div>

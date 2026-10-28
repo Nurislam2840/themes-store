@@ -1,3 +1,4 @@
+// src/app/admin/layout.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -6,7 +7,7 @@ import Link from "next/link";
 import { 
   FaHome, FaSignOutAlt, FaCrown, FaLayerGroup, FaShoppingCart, 
   FaStar, FaCog, FaTag, FaFileAlt, FaImage, FaChartBar, 
-  FaList, FaBars, FaTimes, FaDatabase
+  FaList, FaBars, FaTimes, FaDatabase, FaChartPie, FaBlog
 } from "react-icons/fa";
 
 const supabase = createClient();
@@ -17,16 +18,13 @@ export default function AdminLayout({ children }) {
   const [timeLeft, setTimeLeft] = useState(15 * 60);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Auto Logout Timer
   useEffect(() => {
-    if (pathname === "/admin/login") return; // লগইন পেজে টাইমার নেই
-
+    if (pathname === "/admin/login") return;
     let timer;
     const resetTimer = () => setTimeLeft(15 * 60);
     window.addEventListener("mousemove", resetTimer);
     window.addEventListener("keydown", resetTimer);
     window.addEventListener("click", resetTimer);
-
     timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -39,7 +37,6 @@ export default function AdminLayout({ children }) {
         return prev - 1;
       });
     }, 1000);
-
     return () => {
       window.removeEventListener("mousemove", resetTimer);
       window.removeEventListener("keydown", resetTimer);
@@ -48,17 +45,16 @@ export default function AdminLayout({ children }) {
     };
   }, [router, pathname]);
 
-  // লগইন পেজে সাইডবার দেখাবে না
-  if (pathname === "/admin/login") {
-    return <>{children}</>;
-  }
+  if (pathname === "/admin/login") return <>{children}</>;
 
   const navLinks = [
     { name: "Dashboard", href: "/admin", icon: <FaCrown /> },
+    { name: "Reports (PDF)", href: "/admin/reports", icon: <FaChartPie /> },
     { name: "Themes", href: "/admin/themes", icon: <FaLayerGroup /> },
     { name: "Categories", href: "/admin/categories", icon: <FaDatabase /> },
     { name: "Orders", href: "/admin/orders", icon: <FaShoppingCart /> },
     { name: "Reviews", href: "/admin/reviews", icon: <FaStar /> },
+    { name: "Blog Posts", href: "/admin/blog", icon: <FaBlog /> }, // ✅ নতুন ব্লগ মেনু
     { name: "Pricing", href: "/admin/pricing", icon: <FaTag /> },
     { name: "Banners", href: "/admin/banners", icon: <FaImage /> },
     { name: "Pages", href: "/admin/pages", icon: <FaFileAlt /> },
@@ -70,7 +66,6 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-[#09090B] flex">
-      {/* Desktop Sidebar */}
       <aside className="w-64 bg-[#121214] border-r border-white/5 hidden md:flex flex-col fixed h-full z-40">
         <div className="p-6 border-b border-white/5">
           <Link href="/admin" className="flex items-center gap-2">
@@ -78,21 +73,13 @@ export default function AdminLayout({ children }) {
             <span className="text-white font-bold">Admin Panel</span>
           </Link>
         </div>
-        
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
           {navLinks.map((link) => (
-            <Link 
-              key={link.name} 
-              href={link.href} 
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                pathname === link.href ? "bg-brand-gold/10 text-brand-gold" : "text-brand-muted hover:bg-white/5 hover:text-white"
-              }`}
-            >
+            <Link key={link.name} href={link.href} className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${pathname === link.href ? "bg-brand-gold/10 text-brand-gold" : "text-brand-muted hover:bg-white/5 hover:text-white"}`}>
               {link.icon} {link.name}
             </Link>
           ))}
         </nav>
-
         <div className="p-4 border-t border-white/5 space-y-1">
           <Link href="/" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-brand-muted hover:bg-white/5 hover:text-white transition-colors">
             <FaHome /> View Store
@@ -103,7 +90,6 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Mobile Sidebar (Toggle) */}
       {isSidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex">
           <div className="fixed inset-0 bg-black/60" onClick={() => setIsSidebarOpen(false)}></div>
@@ -126,21 +112,15 @@ export default function AdminLayout({ children }) {
         </div>
       )}
 
-      {/* Main Content Area */}
       <div className="flex-1 md:ml-64 flex flex-col min-h-screen relative">
-        {/* Mobile Top Bar */}
         <div className="md:hidden sticky top-0 w-full z-30 bg-[#121214] border-b border-white/5 p-4 flex items-center justify-between">
           <button onClick={() => setIsSidebarOpen(true)} className="text-white"><FaBars size={20} /></button>
           <span className="text-white font-bold">Admin Panel</span>
           <Link href="/" className="text-brand-gold"><FaHome size={18} /></Link>
         </div>
-        
-        <div className="flex-1">
-          {children}
-        </div>
+        <div className="flex-1">{children}</div>
       </div>
 
-      {/* Timer Indicator */}
       <div className="fixed bottom-4 right-4 z-[9999] bg-[#121214] border border-red-500/30 text-red-400 text-xs font-mono px-3 py-1.5 rounded-full shadow-lg opacity-80 hover:opacity-100 transition-opacity">
         Auto Logout: {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
       </div>

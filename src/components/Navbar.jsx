@@ -35,7 +35,6 @@ export default function Navbar({ initialTheme = "dark" }) {
   const cartCount = useCartWishlistStore((s) => s.cart.reduce((n, i) => n + i.quantity, 0));
   const wishCount = useCartWishlistStore((s) => s.wishlist.length);
 
-  // next-themes hydration-এর জন্য
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
@@ -110,6 +109,9 @@ export default function Navbar({ initialTheme = "dark" }) {
             {menuLinks.map((link) => (
               <Link key={link.id} href={link.href} className={`relative text-sm font-semibold tracking-wide transition-colors hover:text-brand-gold ${pathname === link.href ? "text-brand-gold" : "text-gray-600 dark:text-brand-muted"}`}>{link.name}</Link>
             ))}
+
+            {/* ✅ নতুন Blog লিংক */}
+            <Link href="/blog" className={`relative text-sm font-semibold tracking-wide transition-colors hover:text-brand-gold ${pathname.startsWith("/blog") ? "text-brand-gold" : "text-gray-600 dark:text-brand-muted"}`}>Blog</Link>
 
             <div className="relative" onMouseEnter={() => setIsThemesHovered(true)} onMouseLeave={() => setIsThemesHovered(false)}>
               <Link href="/themes" className={`flex items-center gap-1.5 text-sm font-semibold tracking-wide transition-colors ${isThemesHovered || pathname.includes("/themes") ? "text-brand-gold" : "text-gray-600 dark:text-brand-muted"}`}>
@@ -197,6 +199,10 @@ export default function Navbar({ initialTheme = "dark" }) {
                 {menuLinks.map((link) => (
                   <Link key={link.id} href={link.href} className={`px-4 py-3 rounded-xl text-sm font-semibold ${pathname === link.href ? "bg-brand-gold/10 text-brand-gold" : "text-gray-600 dark:text-brand-muted hover:bg-gray-50 dark:hover:bg-white/5"}`}>{link.name}</Link>
                 ))}
+                
+                {/* ✅ মোবাইল মেনুতে Blog লিংক */}
+                <Link href="/blog" className={`px-4 py-3 rounded-xl text-sm font-semibold ${pathname.startsWith("/blog") ? "bg-brand-gold/10 text-brand-gold" : "text-gray-600 dark:text-brand-muted hover:bg-gray-50 dark:hover:bg-white/5"}`}>Blog</Link>
+
                 <p className="text-xs text-gray-400 dark:text-brand-muted uppercase tracking-wider px-4 pt-3 pb-1">Categories</p>
                 {categories.map((cat) => (
                   <div key={cat.id}>
