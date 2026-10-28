@@ -8,7 +8,6 @@ async function getUserId() {
   return session?.user?.id ?? null;
 }
 
-// লোকাল স্টোরেজ থেকে কার্ট ও উইশলিস্ট লোড
 const loadFromLocal = () => {
   if (typeof window === "undefined") return { cart: [], wishlist: [] };
   try {
@@ -20,11 +19,16 @@ const loadFromLocal = () => {
   }
 };
 
-// লোকাল স্টোরেজে কার্ট ও উইশলিস্ট সেভ
 const saveToLocal = (cart, wishlist) => {
   if (typeof window === "undefined") return;
   localStorage.setItem("guest_cart", JSON.stringify(cart));
   localStorage.setItem("guest_wishlist", JSON.stringify(wishlist));
+};
+
+const clearLocal = () => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("guest_cart");
+  localStorage.removeItem("guest_wishlist");
 };
 
 export const useCartWishlistStore = create((set, get) => ({
@@ -34,14 +38,29 @@ export const useCartWishlistStore = create((set, get) => ({
   hydrate: async () => {
     const userId = await getUserId();
     
-    // ইউজার লগইন না করলে লোকাল স্টোরেজ থেকে ডেটা নেবে
     if (!userId) {
       const { cart, wishlist } = loadFromLocal();
       set({ cart, wishlist, isHydrated: true });
       return;
     }
 
-    // লগইন করলে ডাটাবেস থেকে ডেটা আনবে
+    const guestData = loadFromLocal();
+    
+    // ✅ Guest Data মার্জ করা
+    if (guestData.cart.length > 0) {
+      for (const item of guestData.cart) {
+        await supabase.rpc("add_to_cart", { p_theme_id: item.themeId, p_qty: item.quantity });
+      }
+    }
+    if (guestData.wishlist.length > 0) {
+      for (const item of guestData.wishlist) {
+        await supabase.from("wishlist_items").upsert({ user_id: userId, theme_id: item.themeId }, { onConflict: "user_id,theme_id" });
+      }
+    }
+    
+    // মার্জ শেষে লোকাল স্টোরেজ ক্লিয়ার
+    clearLocal();
+
     const [{ data: cartRows }, { data: wishRows }] = await Promise.all([
       supabase.from("cart_items").select("theme_id, quantity").eq("user_id", userId),
       supabase.from("wishlist_items").select("theme_id").eq("user_id", userId),
@@ -52,14 +71,6 @@ export const useCartWishlistStore = create((set, get) => ({
     const allThemeIds = [...new Set([...cartThemeIds, ...wishThemeIds])];
 
     if (allThemeIds.length === 0) {
-      // ডাটাবেস খালি থাকলে গেস্ট কার্ট মাইগ্রেট করার ট্রাই করবে
-      const guestData = loadFromLocal();
-      if (guestData.cart.length > 0 || guestData.wishlist.length > 0) {
-        // এখানে চাইলে গেস্ট ডেটা ডাটাবেসে সিঙ্ক করার লজিক বসানো যেতে পারে
-        // আপাতত গেস্ট কার্ট ক্লিয়ার করে দিচ্ছি সেফটির জন্য
-        localStorage.removeItem("guest_cart");
-        localStorage.removeItem("guest_wishlist");
-      }
       set({ cart: [], wishlist: [], isHydrated: true });
       return;
     }
@@ -75,28 +86,13 @@ export const useCartWishlistStore = create((set, get) => ({
     const cart = (cartRows ?? []).map(r => {
       const t = themeMap[r.theme_id];
       if (!t) return null;
-      return {
-        themeId: r.theme_id,
-        quantity: r.quantity,
-        title: t.title,
-        price: t.price,
-        slug: t.slug,
-        image_url: t.image_url,
-        category: t.category,
-      };
+      return { themeId: r.theme_id, quantity: r.quantity, title: t.title, price: t.price, slug: t.slug, image_url: t.image_url, category: t.category };
     }).filter(Boolean);
 
     const wishlist = (wishRows ?? []).map(r => {
       const t = themeMap[r.theme_id];
       if (!t) return null;
-      return {
-        themeId: r.theme_id,
-        title: t.title,
-        price: t.price,
-        slug: t.slug,
-        image_url: t.image_url,
-        category: t.category,
-      };
+      return { themeId: r.theme_id, title: t.title, price: t.price, slug: t.slug, image_url: t.image_url, category: t.category };
     }).filter(Boolean);
 
     set({ cart, wishlist, isHydrated: true });
@@ -111,25 +107,15 @@ export const useCartWishlistStore = create((set, get) => ({
     if (existing) {
       newCart = currentCart.map((c) => c.themeId === theme.id ? { ...c, quantity: c.quantity + qty } : c);
     } else {
-      newCart = [...currentCart, {
-        themeId: theme.id,
-        quantity: qty,
-        title: theme.title,
-        price: theme.price,
-        slug: theme.slug,
-        image_url: theme.image_url,
-        category: theme.category,
-      }];
+      newCart = [...currentCart, { themeId: theme.id, quantity: qty, title: theme.title, price: theme.price, slug: theme.slug, image_url: theme.image_url, category: theme.category }];
     }
 
     set({ cart: newCart });
 
     if (!userId) {
-      saveToLocal(newCart, get().wishlist); // গেস্ট হলে লোকাল স্টোরেজে সেভ
+      saveToLocal(newCart, get().wishlist);
       return;
     }
-
-    // লগইন থাকলে ডাটাবেসে সেভ
     await supabase.rpc("add_to_cart", { p_theme_id: theme.id, p_qty: qty });
   },
 
@@ -166,14 +152,7 @@ export const useCartWishlistStore = create((set, get) => ({
     if (exists) {
       newWishlist = get().wishlist.filter((w) => w.themeId !== theme.id);
     } else {
-      newWishlist = [...get().wishlist, {
-        themeId: theme.id,
-        title: theme.title,
-        price: theme.price,
-        slug: theme.slug,
-        image_url: theme.image_url,
-        category: theme.category,
-      }];
+      newWishlist = [...get().wishlist, { themeId: theme.id, title: theme.title, price: theme.price, slug: theme.slug, image_url: theme.image_url, category: theme.category }];
     }
 
     set({ wishlist: newWishlist });

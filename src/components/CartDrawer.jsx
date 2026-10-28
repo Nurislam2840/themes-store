@@ -1,6 +1,7 @@
 // src/components/CartDrawer.jsx
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaShoppingBag, FaTrash, FaPlus, FaMinus, FaTimes, FaSpinner, FaImage, FaLock, FaCoins } from "react-icons/fa";
@@ -46,7 +47,6 @@ export default function CartDrawer({ cartCount }) {
                   <button onClick={() => setOpen(false)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-brand-muted hover:text-white transition-all"><FaTimes size={16} /></button>
                 </div>
 
-                {/* কারেন্সি সিলেক্টর */}
                 <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-white/5">
                   <FaCoins className="text-brand-gold text-xs" />
                   <span className="text-brand-muted text-[10px] uppercase tracking-wider font-semibold">Currency:</span>
@@ -81,7 +81,7 @@ export default function CartDrawer({ cartCount }) {
                       >
                         <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-[#09090B] border border-white/5 flex items-center justify-center">
                           {item.image_url ? (
-                            <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            <Image src={item.image_url} alt={item.title} fill sizes="80px" className="object-cover group-hover:scale-110 transition-transform duration-500" />
                           ) : (
                             <FaImage className="text-brand-muted text-2xl opacity-50" />
                           )}

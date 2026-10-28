@@ -1,11 +1,12 @@
 // src/app/my-downloads/page.jsx
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 const supabase = createClient();
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAlert } from "@/providers/AlertProvider"; // ✅ Alert Provider ইমপোর্ট
+import { useAlert } from "@/providers/AlertProvider";
 import { 
   FaDownload, FaSignOutAlt, FaBoxOpen, FaSpinner, 
   FaCheckCircle, FaShoppingBag, FaCrown, FaChartLine, FaArrowRight,
@@ -15,7 +16,7 @@ import { motion } from "framer-motion";
 
 export default function MyDownloadsPage() {
   const router = useRouter();
-  const { showAlert } = useAlert(); // ✅ alert এর পরিবর্তে showAlert
+  const { showAlert } = useAlert();
   const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +44,7 @@ export default function MyDownloadsPage() {
           return { 
             ...order, 
             image_url: theme?.image_url, 
-            category: theme?.categories?.name || "Theme" // ✅ category ফিক্স
+            category: theme?.categories?.name || "Theme"
           };
         }));
         setOrders(ordersWithTheme);
@@ -192,14 +193,14 @@ export default function MyDownloadsPage() {
                   
                   <div className="h-40 overflow-hidden relative">
                     {order.image_url ? (
-                      <img src={order.image_url} alt={order.theme_title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <Image src={order.image_url} alt={order.theme_title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-110 transition-transform duration-700" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                         <FaBoxOpen className="text-4xl text-white/10" />
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-transparent"></div>
-                    <div className="absolute top-3 right-3 bg-green-500/90 text-white text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+                    <div className="absolute top-3 right-3 bg-green-500/90 text-white text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1 z-10">
                       <FaCheckCircle size={8} /> OWNED
                     </div>
                   </div>

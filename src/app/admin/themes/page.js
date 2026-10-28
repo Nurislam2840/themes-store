@@ -1,12 +1,13 @@
 // src/app/admin/themes/page.js
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
 import { 
-  FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, 
-  FaSearch, FaEdit, FaFileArchive, FaChrome, FaCloudUploadAlt, FaCheckCircle 
+  FaPlus, FaTrash, FaUpload, FaSave, FaTimes, 
+  FaSearch, FaEdit, FaFileArchive, FaChrome, FaCloudUploadAlt, FaCheckCircle, FaImage
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { themeSchema } from "@/lib/validations/themeSchema";
@@ -63,10 +64,7 @@ export default function AdminThemesPage() {
     setForm({ ...form, [listName]: newList });
   };
 
-  const addListItem = (listName) => {
-    setForm({ ...form, [listName]: [...form[listName], ""] });
-  };
-
+  const addListItem = (listName) => setForm({ ...form, [listName]: [...form[listName], ""] });
   const removeListItem = (listName, index) => {
     const newList = form[listName].filter((_, i) => i !== index);
     setForm({ ...form, [listName]: newList.length > 0 ? newList : [""] });
@@ -88,18 +86,11 @@ export default function AdminThemesPage() {
     const file = e.target.files[0];
     if (!file) return;
     setIsFileUploading(true);
-    
     try {
       const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
       const filePath = `themes/${fileName}`;
       const { error: uploadError } = await supabase.storage.from("secure-downloads").upload(filePath, file);
-      
-      if (uploadError) { 
-        showAlert("File upload failed: " + uploadError.message, "error");
-        setIsFileUploading(false); 
-        return; 
-      }
-      
+      if (uploadError) { showAlert("File upload failed: " + uploadError.message, "error"); setIsFileUploading(false); return; }
       setForm(prevForm => ({ ...prevForm, file_path: filePath }));
       showAlert("File uploaded securely!", "success");
     } catch (err) {
@@ -109,31 +100,24 @@ export default function AdminThemesPage() {
     }
   };
 
-  // ✅ গ্যালারি ইমেজ আপলোড ফাংশন ফিক্স করা হয়েছে
   const handleGalleryUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     setIsGalleryUploading(true);
-    
     const uploadedUrls = [];
     for (const file of files) {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
       const { error } = await supabase.storage.from("theme-images").upload(`gallery/${fileName}`, file);
-      
       if (!error) {
         const { data } = supabase.storage.from("theme-images").getPublicUrl(`gallery/${fileName}`);
         uploadedUrls.push(data.publicUrl);
       }
     }
-    
-    // আগের ইমেজগুলোর সাথে নতুন ইমেজ যোগ করা হচ্ছে
     setForm(prev => ({ ...prev, gallery_images: [...(prev.gallery_images || []), ...uploadedUrls] }));
     setIsGalleryUploading(false);
   };
 
-  const removeGalleryImage = (index) => {
-    setForm(prev => ({ ...prev, gallery_images: prev.gallery_images.filter((_, i) => i !== index) }));
-  };
+  const removeGalleryImage = (index) => setForm(prev => ({ ...prev, gallery_images: prev.gallery_images.filter((_, i) => i !== index) }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -141,37 +125,23 @@ export default function AdminThemesPage() {
     if (!form.file_path) return showAlert("Secure download file is required", "error");
 
     setIsSubmitting(true);
-    
     const featuresArray = form.featuresList.filter(f => f.trim() !== "");
     const technologiesArray = form.technologiesList.filter(t => t.trim() !== "");
 
     const themeData = {
-      title: form.title.trim(),
-      slug: form.slug,
-      category_id: form.category_id || null,
-      price: parseFloat(form.price),
-      old_price: form.old_price ? parseFloat(form.old_price) : null,
-      description: form.description.trim(),
-      image_url: form.image_url,
-      demo_url: form.demo_url,
-      file_path: form.file_path,
-      features: featuresArray,
-      technologies: technologiesArray,
-      gallery_images: form.gallery_images, // এখানে ইমেজের অ্যারে সেভ হবে
-      file_included: form.file_included,
-      browser_support: form.browser_support,
-      responsive: form.responsive,
-      updates: form.updates,
-      is_premium: form.is_premium,
+      title: form.title.trim(), slug: form.slug, category_id: form.category_id || null,
+      price: parseFloat(form.price), old_price: form.old_price ? parseFloat(form.old_price) : null,
+      description: form.description.trim(), image_url: form.image_url, demo_url: form.demo_url,
+      file_path: form.file_path, features: featuresArray, technologies: technologiesArray,
+      gallery_images: form.gallery_images, file_included: form.file_included,
+      browser_support: form.browser_support, responsive: form.responsive,
+      updates: form.updates, is_premium: form.is_premium,
     };
 
     try {
       themeSchema.parse(themeData);
     } catch (validationError) {
-      if (validationError instanceof z.ZodError) {
-        const firstError = validationError.errors[0];
-        showAlert(`Invalid input: ${firstError.message}`, "error");
-      }
+      if (validationError instanceof z.ZodError) showAlert(`Invalid input: ${validationError.errors[0].message}`, "error");
       setIsSubmitting(false);
       return;
     }
@@ -200,15 +170,13 @@ export default function AdminThemesPage() {
   const handleEdit = (theme) => {
     setForm({
       title: theme.title, slug: theme.slug, category_id: theme.category_id || "",
-      price: theme.price, old_price: theme.old_price || "",
-      description: theme.description, image_url: theme.image_url, demo_url: theme.demo_url || "#", 
-      file_path: theme.file_path || "", 
+      price: theme.price, old_price: theme.old_price || "", description: theme.description,
+      image_url: theme.image_url, demo_url: theme.demo_url || "#", file_path: theme.file_path || "", 
       featuresList: theme.features && theme.features.length > 0 ? theme.features : [""],
       technologiesList: theme.technologies && theme.technologies.length > 0 ? theme.technologies : [""],
-      gallery_images: theme.gallery_images || [], // এখানে এডিট করার সময় আগের ছবি লোড হবে
-      file_included: theme.file_included || "", browser_support: theme.browser_support || "", 
-      responsive: theme.responsive || "Mobile & Tablet", updates: theme.updates || "Lifetime Free", 
-      is_premium: theme.is_premium
+      gallery_images: theme.gallery_images || [], file_included: theme.file_included || "",
+      browser_support: theme.browser_support || "", responsive: theme.responsive || "Mobile & Tablet",
+      updates: theme.updates || "Lifetime Free", is_premium: theme.is_premium
     });
     setEditingId(theme.id);
     setShowForm(true);
@@ -322,12 +290,12 @@ export default function AdminThemesPage() {
                   <label className="block text-xs text-brand-muted mb-3">Gallery Images (Multiple)</label>
                   <div className="flex flex-wrap gap-3 mb-3">
                     {form.gallery_images.map((url, i) => (
-                      <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden group">
+                      <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden group border border-white/10">
                         <img src={url} alt="gallery" className="w-full h-full object-cover" />
                         <button type="button" onClick={() => removeGalleryImage(i)} className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-500"><FaTrash /></button>
                       </div>
                     ))}
-                    <label className="w-20 h-20 rounded-lg border-2 border-dashed border-white/20 hover:border-brand-gold flex flex-col items-center justify-center cursor-pointer transition-colors">
+                    <label className="w-20 h-20 rounded-lg border-2 border-dashed border-white/20 hover:border-brand-gold flex flex-col items-center justify-center cursor-pointer transition-colors bg-[#121214]">
                       {isGalleryUploading ? <span className="text-[10px] text-brand-muted">Uploading...</span> : <><FaPlus className="text-brand-muted" /><span className="text-[10px] text-brand-muted mt-1">Add</span></>}
                       <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="hidden" disabled={isGalleryUploading} />
                     </label>
@@ -378,7 +346,7 @@ export default function AdminThemesPage() {
             {filteredThemes.map(theme => (
               <div key={theme.id} className="bg-[#121214] border border-white/5 rounded-2xl overflow-hidden group hover:border-brand-gold/30 transition-colors">
                 <div className="h-40 overflow-hidden relative">
-                  <img src={theme.image_url} alt={theme.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                  <Image src={theme.image_url} alt={theme.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                   <div className="absolute top-3 left-3">{theme.is_premium ? <span className="bg-brand-gold text-black text-[10px] font-bold px-2 py-1 rounded">PRO</span> : <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">FREE</span>}</div>
                   <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-brand-gold font-bold px-3 py-1 rounded-full text-xs">৳{theme.price}</div>
                 </div>

@@ -1,10 +1,12 @@
+// src/app/admin/banners/page.jsx
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 const supabase = createClient();
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
-import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaImage, FaEye, FaEyeSlash, FaEdit } from "react-icons/fa";
+import { FaArrowLeft, FaPlus, FaTrash, FaUpload, FaSave, FaTimes, FaEye, FaEyeSlash, FaEdit } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminBannersPage() {
@@ -176,8 +178,8 @@ export default function AdminBannersPage() {
           <div className="space-y-4">
             {banners.map(banner => (
               <div key={banner.id} className={`bg-[#121214] border rounded-2xl p-4 flex flex-col md:flex-row items-center gap-4 transition-all ${banner.is_active ? 'border-white/10' : 'border-white/5 opacity-60'}`}>
-                <div className="w-full md:w-48 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-[#09090B]">
-                  <img src={banner.image_url} alt={banner.title} className="w-full h-full object-cover" />
+                <div className="relative w-full md:w-48 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-[#09090B]">
+                  <Image src={banner.image_url} alt={banner.title} fill sizes="(max-width: 768px) 100vw, 192px" className="object-cover" />
                 </div>
                 
                 <div className="flex-1 min-w-0">

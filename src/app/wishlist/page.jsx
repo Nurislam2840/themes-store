@@ -1,5 +1,7 @@
+// src/app/wishlist/page.jsx
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { FaHeart, FaTrash, FaShoppingBag, FaSpinner } from "react-icons/fa";
 import { useCartWishlistStore } from "@/store/cartWishlistStore";
 import { useAlert } from "@/providers/AlertProvider";
@@ -40,7 +42,7 @@ export default function WishlistPage() {
       title: item.title,
       price: item.price,
       slug: item.slug,
-      image_url: item.image_url, // ডাটাবেসের কলামের নাম
+      image_url: item.image_url,
       category: item.category,
     });
     showAlert("Added to cart", "success");
@@ -62,7 +64,7 @@ export default function WishlistPage() {
           >
             <div className="relative w-full sm:w-24 h-32 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-brand-border flex items-center justify-center">
               {item.image_url ? (
-                <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                <Image src={item.image_url} alt={item.title} fill sizes="(max-width: 640px) 100vw, 96px" className="object-cover" />
               ) : (
                 <FaHeart className="text-brand-muted text-2xl opacity-30" />
               )}

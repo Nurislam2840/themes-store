@@ -8,12 +8,23 @@ const nextConfig = {
       { 
         protocol: "https", 
         hostname: "**.supabase.co",
-        pathname: "/**" // ইমেজ পাথের জন্য ওয়াইল্ডকার্ড
+        pathname: "/**" 
       },
       { 
         protocol: "https", 
         hostname: "images.unsplash.com",
-        pathname: "/**"
+        pathname: "/**" 
+      },
+      // ✅ নতুন ইমেজ হোস্ট ডোমেইন যোগ করা হলো
+      { 
+        protocol: "https", 
+        hostname: "i.postimg.cc",
+        pathname: "/**" 
+      },
+      { 
+        protocol: "https", 
+        hostname: "i.ibb.co",
+        pathname: "/**" 
       },
     ],
   },
