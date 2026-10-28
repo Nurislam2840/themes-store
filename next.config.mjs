@@ -1,12 +1,20 @@
-import { withSentryConfig } from "@sentry/nextjs/config"; // 🚨 এখানে /config যোগ করুন
+// next.config.mjs
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "**.supabase.co" },
-      { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: " https", hostname: "i.postimg.cc" },
+      { 
+        protocol: "https", 
+        hostname: "**.supabase.co",
+        pathname: "/**" // ইমেজ পাথের জন্য ওয়াইল্ডকার্ড
+      },
+      { 
+        protocol: "https", 
+        hostname: "images.unsplash.com",
+        pathname: "/**"
+      },
     ],
   },
 };
