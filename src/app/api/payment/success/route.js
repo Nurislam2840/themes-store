@@ -99,7 +99,6 @@ export async function POST(req) {
       .maybeSingle();
 
     if (existingOrder) {
-      // order আগেই insert হয়েছে, শুধু pending_orders আপডেট করে redirect
       await supabaseAdmin.from("pending_orders").update({ status: "completed" }).eq("tran_id", tran_id);
       return NextResponse.redirect(`${siteUrl}/checkout/success?tran_id=${tran_id}`);
     }

@@ -28,6 +28,27 @@ async function getTheme(slug) {
   };
 }
 
+// ✅ Dynamic SEO Metadata
+export async function generateMetadata({ params }) {
+  const resolvedParams = await params;
+  const theme = await getTheme(resolvedParams.slug);
+
+  if (!theme) {
+    return { title: "Theme Not Found | ThemesStore" };
+  }
+
+  return {
+    title: `${theme.title} | Premium Themes`,
+    description: theme.description?.substring(0, 160) || "Buy premium themes.",
+    openGraph: {
+      title: theme.title,
+      description: theme.description?.substring(0, 160),
+      images: [{ url: theme.image_url }],
+      type: "website",
+    },
+  };
+}
+
 export default async function ThemeDetailsPage({ params }) {
   const resolvedParams = await params;
   const theme = await getTheme(resolvedParams.slug);

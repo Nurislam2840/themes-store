@@ -1,3 +1,4 @@
+// src/app/account/login/page.jsx
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -10,8 +11,28 @@ import {
   FaPhone, FaCalendarAlt 
 } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { z } from "zod";
 
 const supabase = createClient();
+
+// ✅ Zod ভ্যালিডেশন স্কিমা
+const registerSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(1, "Last name is required"),
+  mobile: z.string().min(10, "Valid mobile number required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+  dateOfBirth: z.string().min(1, "Date of birth required"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 export default function CustomerAuthPage() {
   const router = useRouter();
@@ -19,18 +40,11 @@ export default function CustomerAuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  // লগইন ফর্ম
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
 
-  // রেজিস্ট্রেশন ফর্ম (আপনার চাহিদা অনুযায়ী সব ফিল্ড)
   const [registerForm, setRegisterForm] = useState({
-    firstName: "",
-    lastName: "",
-    mobile: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    dateOfBirth: ""
+    firstName: "", lastName: "", mobile: "", email: "",
+    password: "", confirmPassword: "", dateOfBirth: ""
   });
 
   useEffect(() => {
@@ -50,11 +64,15 @@ export default function CustomerAuthPage() {
     checkSession();
   }, [router]);
 
-  // =============== লগইন হ্যান্ডলার ===============
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    
+    const validation = loginSchema.safeParse(loginForm);
+    if (!validation.success) {
+      return showAlert(validation.error.errors[0].message, "error");
+    }
 
+    setLoading(true);
     try {
       const params = new URLSearchParams(window.location.search);
       const redirectUrl = params.get("redirect") || "/my-downloads";
@@ -80,25 +98,17 @@ export default function CustomerAuthPage() {
     }
   };
 
-  // =============== রেজিস্ট্রেশন হ্যান্ডলার ===============
   const handleRegister = async (e) => {
     e.preventDefault();
-
-    // ফ্রন্টএন্ড ভ্যালিডেশন
-    if (registerForm.password !== registerForm.confirmPassword) {
-      return showAlert("Passwords do not match", "error");
-    }
-    if (registerForm.password.length < 8) {
-      return showAlert("Password must be at least 8 characters", "error");
-    }
-    if (registerForm.mobile.length < 10) {
-      return showAlert("Please enter a valid mobile number", "error");
+    
+    // ✅ Zod Validation
+    const validation = registerSchema.safeParse(registerForm);
+    if (!validation.success) {
+      return showAlert(validation.error.errors[0].message, "error");
     }
 
     setLoading(true);
-
     try {
-      // ১. Supabase Auth-এ ইউজার তৈরি
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: registerForm.email,
         password: registerForm.password,
@@ -115,30 +125,24 @@ export default function CustomerAuthPage() {
       if (authError) throw authError;
       if (!authData.user) throw new Error("User creation failed");
 
-      // ২. প্রোফাইল তৈরি ও ডেটা সেভ (registration এর সাথেই)
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .upsert({
-          id: authData.user.id,
-          first_name: registerForm.firstName,
-          last_name: registerForm.lastName,
-          mobile: registerForm.mobile,
-          date_of_birth: registerForm.dateOfBirth,
-          role: "customer",
-        });
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: authData.user.id,
+        first_name: registerForm.firstName,
+        last_name: registerForm.lastName,
+        mobile: registerForm.mobile,
+        date_of_birth: registerForm.dateOfBirth,
+        role: "customer",
+      });
 
       if (profileError) {
         console.error("Profile save error:", profileError);
-        // Auth user তৈরি হয়েছে, শুধু প্রোফাইল সেভ হয়নি। তবুও ইউজারকে জানাই
-        showAlert("Account created but profile save failed. Please contact support.", "error");
+        showAlert("Account created but profile save failed.", "error");
       } else {
         showAlert("Account created successfully! Please login.", "success");
       }
 
-      // ফর্ম রিসেট করে লগইন ট্যাবে নিয়ে যাই
       setRegisterForm({ firstName: "", lastName: "", mobile: "", email: "", password: "", confirmPassword: "", dateOfBirth: "" });
       setIsLogin(true);
-      
     } catch (error) {
       showAlert(error.message, "error");
     } finally {
@@ -187,7 +191,6 @@ export default function CustomerAuthPage() {
             </div>
 
             {isLogin ? (
-              // ============ LOGIN ============
               <form onSubmit={handleLogin} className="space-y-5">
                 <div>
                   <label className="block text-xs font-semibold text-brand-muted uppercase tracking-wider mb-2">Email Address</label>
@@ -212,7 +215,6 @@ export default function CustomerAuthPage() {
                 </button>
               </form>
             ) : (
-              // ============ REGISTRATION ============
               <form onSubmit={handleRegister} className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -242,7 +244,7 @@ export default function CustomerAuthPage() {
                   <label className="block text-xs font-semibold text-brand-muted uppercase tracking-wider mb-2">Date of Birth</label>
                   <div className="relative">
                     <FaCalendarAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
-                    <input type="date" value={registerForm.dateOfBirth} onChange={(e) => setRegisterForm({ ...registerForm, dateOfBirth: e.target.value })} required className="w-full bg-[#09090B] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
+                    <input type="date" value={registerForm.dateOfBirth} max={new Date().toISOString().split('T')[0]} onChange={(e) => setRegisterForm({ ...registerForm, dateOfBirth: e.target.value })} required className="w-full bg-[#09090B] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm outline-none focus:border-brand-gold" />
                   </div>
                 </div>
                 <div>
