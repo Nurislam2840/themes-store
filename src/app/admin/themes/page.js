@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useAlert } from "@/providers/AlertProvider";
+import CustomSelect from "@/components/ui/CustomSelect"; // ✅ কাস্টম সিলেক্ট
 import Link from "next/link";
 import { 
   FaPlus, FaTrash, FaUpload, FaSave, FaTimes, 
-  FaSearch, FaEdit, FaFileArchive, FaChrome, FaCloudUploadAlt, FaCheckCircle, FaImage
+  FaSearch, FaEdit, FaFileArchive, FaChrome, FaCloudUploadAlt, FaCheckCircle
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { themeSchema } from "@/lib/validations/themeSchema";
@@ -27,6 +28,9 @@ export default function AdminThemesPage() {
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
+
+  const [selectedMainCat, setSelectedMainCat] = useState("");
+  const [selectedSubCat, setSelectedSubCat] = useState("");
 
   const [form, setForm] = useState({
     title: "", slug: "", category_id: "", price: "", old_price: "",
@@ -123,6 +127,7 @@ export default function AdminThemesPage() {
     e.preventDefault();
     if (!form.image_url) return showAlert("Thumbnail image is required", "error");
     if (!form.file_path) return showAlert("Secure download file is required", "error");
+    if (!form.category_id) return showAlert("Please select a category", "error");
 
     setIsSubmitting(true);
     const featuresArray = form.featuresList.filter(f => f.trim() !== "");
@@ -178,13 +183,28 @@ export default function AdminThemesPage() {
       browser_support: theme.browser_support || "", responsive: theme.responsive || "Mobile & Tablet",
       updates: theme.updates || "Lifetime Free", is_premium: theme.is_premium
     });
+
+    const cat = dbCategories.find(c => c.id === theme.category_id);
+    if (cat) {
+      if (cat.parent_id) {
+        setSelectedMainCat(cat.parent_id);
+        setSelectedSubCat(cat.id);
+      } else {
+        setSelectedMainCat(cat.id);
+        setSelectedSubCat("");
+      }
+    } else {
+      setSelectedMainCat("");
+      setSelectedSubCat("");
+    }
+
     setEditingId(theme.id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const closeForm = () => {
-    setShowForm(false); setEditingId(null);
+    setShowForm(false); setEditingId(null); setSelectedMainCat(""); setSelectedSubCat("");
     setForm({ title: "", slug: "", category_id: "", price: "", old_price: "", description: "", image_url: "", demo_url: "#", file_path: "", featuresList: [""], technologiesList: [""], gallery_images: [], file_included: "", browser_support: "", responsive: "Mobile & Tablet", updates: "Lifetime Free", is_premium: false });
   };
 
@@ -201,6 +221,12 @@ export default function AdminThemesPage() {
   };
 
   const filteredThemes = themes.filter(t => t.title.toLowerCase().includes(search.toLowerCase()));
+
+  const mainCategories = dbCategories.filter(c => !c.parent_id);
+  const subCategories = dbCategories.filter(c => c.parent_id === selectedMainCat);
+
+  const mainCatOptions = mainCategories.map(cat => ({ value: cat.id, label: cat.name }));
+  const subCatOptions = subCategories.map(cat => ({ value: cat.id, label: cat.name }));
 
   return (
     <div className="min-h-screen bg-[#09090B] pt-10 pb-20 px-6">
@@ -223,13 +249,38 @@ export default function AdminThemesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                   <div><label className="block text-xs text-brand-muted mb-2">Title</label><input type="text" name="title" value={form.title} onChange={handleChange} required className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                   <div><label className="block text-xs text-brand-muted mb-2">Slug</label><input type="text" name="slug" value={form.slug} readOnly className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-brand-muted text-sm outline-none" /></div>
+                  
                   <div>
-                    <label className="block text-xs text-brand-muted mb-2">Category</label>
-                    <select name="category_id" value={form.category_id} onChange={handleChange} required className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold">
-                      <option value="">Select Category</option>
-                      {dbCategories.map(cat => (<option key={cat.id} value={cat.id}>{cat.parent_id ? `↳ ${cat.name}` : cat.name}</option>))}
-                    </select>
+                    <label className="block text-xs text-brand-muted mb-2">Main Category</label>
+                    <CustomSelect 
+                      options={mainCatOptions} 
+                      value={selectedMainCat} 
+                      onChange={(val) => {
+                        setSelectedMainCat(val);
+                        setSelectedSubCat("");
+                        const hasSubCats = dbCategories.some(c => c.parent_id === val);
+                        if (!hasSubCats) setForm(prev => ({ ...prev, category_id: val }));
+                        else setForm(prev => ({ ...prev, category_id: "" }));
+                      }} 
+                      placeholder="Select Main Category"
+                    />
                   </div>
+
+                  {subCategories.length > 0 && (
+                    <div>
+                      <label className="block text-xs text-brand-muted mb-2">Sub Category (Optional)</label>
+                      <CustomSelect 
+                        options={subCatOptions} 
+                        value={selectedSubCat} 
+                        onChange={(val) => {
+                          setSelectedSubCat(val);
+                          setForm(prev => ({ ...prev, category_id: val }));
+                        }} 
+                        placeholder="Select Sub Category"
+                      />
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-3">
                     <div><label className="block text-xs text-brand-muted mb-2">Price (৳)</label><input type="number" name="price" value={form.price} onChange={handleChange} required step="1" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>
                     <div><label className="block text-xs text-brand-muted mb-2">Old Price (৳)</label><input type="number" name="old_price" value={form.old_price} onChange={handleChange} step="1" placeholder="Optional" className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold" /></div>

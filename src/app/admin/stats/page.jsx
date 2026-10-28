@@ -1,3 +1,4 @@
+// src/app/admin/stats/page.jsx
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -5,13 +6,13 @@ const supabase = createClient();
 import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
 import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaTimes, FaEdit } from "react-icons/fa";
+import CustomSelect from "@/components/ui/CustomSelect"; // ✅ কাস্টম সিলেক্ট
 
 export default function AdminStatsPage() {
   const { showAlert } = useAlert();
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // এডিট করার জন্য নতুন স্টেট
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ 
     label: "", value: "", suffix: "", decimals: 0, icon_name: "FaStar", order_index: 0 
@@ -39,11 +40,9 @@ export default function AdminStatsPage() {
 
     let error;
     if (editingId) {
-      // আপডেট
       const { error: updateError } = await supabase.from("stats").update(statData).eq("id", editingId);
       error = updateError;
     } else {
-      // নতুন ইনসার্ট
       const { error: insertError } = await supabase.from("stats").insert([statData]);
       error = insertError;
     }
@@ -79,6 +78,17 @@ export default function AdminStatsPage() {
     fetchStats();
   };
 
+  // ✅ আইকন অপশনগুলো
+  const iconOptions = [
+    { value: "FaLayerGroup", label: "Layers (FaLayerGroup)" },
+    { value: "FaUsers", label: "Users (FaUsers)" },
+    { value: "FaDownload", label: "Download (FaDownload)" },
+    { value: "FaStar", label: "Star (FaStar)" },
+    { value: "FaHeart", label: "Heart (FaHeart)" },
+    { value: "FaRocket", label: "Rocket (FaRocket)" },
+    { value: "FaAward", label: "Award (FaAward)" },
+  ];
+
   return (
     <div className="min-h-screen bg-[#09090B] pt-28 pb-20 px-6">
       <div className="max-w-4xl mx-auto">
@@ -90,7 +100,6 @@ export default function AdminStatsPage() {
           <p className="text-brand-muted text-sm mt-2">Add, edit, or delete homepage number counters.</p>
         </div>
 
-        {/* Add / Edit Form */}
         <form onSubmit={handleSubmit} className="bg-[#121214] border border-brand-gold/30 rounded-3xl p-6 md:p-8 mb-8 shadow-2xl">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-bold text-white">{editingId ? "Edit Stat" : "Add New Stat"}</h3>
@@ -123,15 +132,13 @@ export default function AdminStatsPage() {
             </div>
             <div>
               <label className="block text-xs text-brand-muted mb-2">Icon</label>
-              <select value={form.icon_name} onChange={e => setForm({...form, icon_name: e.target.value})} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold">
-                <option value="FaLayerGroup">Layers (FaLayerGroup)</option>
-                <option value="FaUsers">Users (FaUsers)</option>
-                <option value="FaDownload">Download (FaDownload)</option>
-                <option value="FaStar">Star (FaStar)</option>
-                <option value="FaHeart">Heart (FaHeart)</option>
-                <option value="FaRocket">Rocket (FaRocket)</option>
-                <option value="FaAward">Award (FaAward)</option>
-              </select>
+              {/* ✅ CustomSelect ব্যবহার */}
+              <CustomSelect
+                options={iconOptions}
+                value={form.icon_name}
+                onChange={(val) => setForm({ ...form, icon_name: val })}
+                placeholder="Select Icon"
+              />
             </div>
             <div>
               <label className="block text-xs text-brand-muted mb-2">Order</label>
@@ -144,7 +151,6 @@ export default function AdminStatsPage() {
           </button>
         </form>
 
-        {/* Stats List */}
         {loading ? (
           <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div></div>
         ) : (

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaShoppingBag, FaTrash, FaPlus, FaMinus, FaTimes, FaSpinner, FaImage, FaLock, FaCoins } from "react-icons/fa";
 import { useCartWishlistStore } from "@/store/cartWishlistStore";
 import { useCurrencyStore } from "@/store/currencyStore";
+import CustomSelect from "@/components/ui/CustomSelect"; // ✅ কাস্টম সিলেক্ট
 
 export default function CartDrawer({ cartCount }) {
   const [open, setOpen] = useState(false);
@@ -50,16 +51,19 @@ export default function CartDrawer({ cartCount }) {
                 <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-white/5">
                   <FaCoins className="text-brand-gold text-xs" />
                   <span className="text-brand-muted text-[10px] uppercase tracking-wider font-semibold">Currency:</span>
-                  <select
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                    className="bg-[#09090B] border border-white/10 hover:border-brand-gold/50 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
-                  >
-                    <option value="BDT">৳ BDT</option>
-                    <option value="USD">$ USD</option>
-                    <option value="EUR">€ EUR</option>
-                    <option value="INR">₹ INR</option>
-                  </select>
+                  <div className="w-24">
+                    <CustomSelect
+                      options={[
+                        { value: "BDT", label: "৳ BDT" },
+                        { value: "USD", label: "$ USD" },
+                        { value: "EUR", label: "€ EUR" },
+                        { value: "INR", label: "₹ INR" },
+                      ]}
+                      value={currency}
+                      onChange={setCurrency}
+                      className="w-full"
+                    />
+                  </div>
                 </div>
               </div>
 

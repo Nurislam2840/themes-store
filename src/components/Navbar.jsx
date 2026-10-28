@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 const supabase = createClient();
 import CartDrawer from "@/components/CartDrawer";
 import SearchModal from "@/components/SearchModal";
+import CustomSelect from "@/components/ui/CustomSelect"; // ✅ কাস্টম সিলেক্ট
 
 export default function Navbar({ initialTheme = "dark" }) {
   const pathname = usePathname();
@@ -109,8 +110,7 @@ export default function Navbar({ initialTheme = "dark" }) {
             {menuLinks.map((link) => (
               <Link key={link.id} href={link.href} className={`relative text-sm font-semibold tracking-wide transition-colors hover:text-brand-gold ${pathname === link.href ? "text-brand-gold" : "text-gray-600 dark:text-brand-muted"}`}>{link.name}</Link>
             ))}
-
-            {/* ✅ নতুন Blog লিংক */}
+            
             <Link href="/blog" className={`relative text-sm font-semibold tracking-wide transition-colors hover:text-brand-gold ${pathname.startsWith("/blog") ? "text-brand-gold" : "text-gray-600 dark:text-brand-muted"}`}>Blog</Link>
 
             <div className="relative" onMouseEnter={() => setIsThemesHovered(true)} onMouseLeave={() => setIsThemesHovered(false)}>
@@ -146,12 +146,20 @@ export default function Navbar({ initialTheme = "dark" }) {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-            <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="hidden lg:block bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white text-xs rounded-lg px-2 py-1.5 outline-none cursor-pointer hover:border-brand-gold transition-colors">
-              <option value="BDT" className="bg-white dark:bg-[#121214]">৳ BDT</option>
-              <option value="USD" className="bg-white dark:bg-[#121214]">$ USD</option>
-              <option value="EUR" className="bg-white dark:bg-[#121214]">€ EUR</option>
-              <option value="INR" className="bg-white dark:bg-[#121214]">₹ INR</option>
-            </select>
+            {/* ✅ Custom Currency Select */}
+            <div className="hidden lg:block w-28">
+              <CustomSelect
+                options={[
+                  { value: "BDT", label: "৳ BDT" },
+                  { value: "USD", label: "$ USD" },
+                  { value: "EUR", label: "€ EUR" },
+                  { value: "INR", label: "₹ INR" },
+                ]}
+                value={currency}
+                onChange={setCurrency}
+                className="w-full"
+              />
+            </div>
 
             {mounted && (
               <button onClick={toggleTheme} className="p-1.5 text-gray-500 dark:text-brand-muted hover:text-brand-gold transition-all">
@@ -200,7 +208,6 @@ export default function Navbar({ initialTheme = "dark" }) {
                   <Link key={link.id} href={link.href} className={`px-4 py-3 rounded-xl text-sm font-semibold ${pathname === link.href ? "bg-brand-gold/10 text-brand-gold" : "text-gray-600 dark:text-brand-muted hover:bg-gray-50 dark:hover:bg-white/5"}`}>{link.name}</Link>
                 ))}
                 
-                {/* ✅ মোবাইল মেনুতে Blog লিংক */}
                 <Link href="/blog" className={`px-4 py-3 rounded-xl text-sm font-semibold ${pathname.startsWith("/blog") ? "bg-brand-gold/10 text-brand-gold" : "text-gray-600 dark:text-brand-muted hover:bg-gray-50 dark:hover:bg-white/5"}`}>Blog</Link>
 
                 <p className="text-xs text-gray-400 dark:text-brand-muted uppercase tracking-wider px-4 pt-3 pb-1">Categories</p>

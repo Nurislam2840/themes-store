@@ -1,3 +1,4 @@
+// src/app/admin/features/page.jsx
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -6,6 +7,7 @@ import { useAlert } from "@/providers/AlertProvider";
 import Link from "next/link";
 import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaTimes, FaEdit, FaBolt, FaShieldAlt, FaInfinity, FaHeadset } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import CustomSelect from "@/components/ui/CustomSelect"; // ✅ কাস্টম সিলেক্ট
 
 export default function AdminFeaturesPage() {
   const { showAlert } = useAlert();
@@ -75,7 +77,6 @@ export default function AdminFeaturesPage() {
     fetchFeatures();
   };
 
-  // আইকন এবং কালার প্রিভিউ দেখানোর জন্য
   const getIconPreview = (iconName) => {
     switch(iconName) {
       case 'FaBolt': return <FaBolt />;
@@ -85,6 +86,22 @@ export default function AdminFeaturesPage() {
       default: return <FaBolt />;
     }
   };
+
+  // ✅ আইকন এবং কালার অপশন
+  const iconOptions = [
+    { value: "FaBolt", label: "Bolt (Lightning)" },
+    { value: "FaShieldAlt", label: "Shield (Security)" },
+    { value: "FaInfinity", label: "Infinity (Lifetime)" },
+    { value: "FaHeadset", label: "Headset (Support)" },
+  ];
+
+  const colorOptions = [
+    { value: "yellow", label: "Yellow / Gold" },
+    { value: "green", label: "Green" },
+    { value: "cyan", label: "Cyan / Blue" },
+    { value: "purple", label: "Purple" },
+    { value: "red", label: "Red" },
+  ];
 
   return (
     <div className="min-h-screen bg-[#09090B] pt-28 pb-20 px-6">
@@ -97,7 +114,6 @@ export default function AdminFeaturesPage() {
           <p className="text-brand-muted text-sm mt-2">Edit the "Why Choose Us" section on the homepage.</p>
         </div>
 
-        {/* Add / Edit Form */}
         <form onSubmit={handleSubmit} className="bg-[#121214] border border-brand-gold/30 rounded-3xl p-6 md:p-8 mb-8 shadow-2xl">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-bold text-white">{editingId ? "Edit Feature" : "Add New Feature"}</h3>
@@ -128,12 +144,14 @@ export default function AdminFeaturesPage() {
             <div>
               <label className="block text-xs text-brand-muted mb-2">Icon</label>
               <div className="flex items-center gap-3">
-                <select value={form.icon_name} onChange={e => setForm({...form, icon_name: e.target.value})} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold">
-                  <option value="FaBolt">Bolt (Lightning)</option>
-                  <option value="FaShieldAlt">Shield (Security)</option>
-                  <option value="FaInfinity">Infinity (Lifetime)</option>
-                  <option value="FaHeadset">Headset (Support)</option>
-                </select>
+                {/* ✅ CustomSelect ব্যবহার */}
+                <CustomSelect
+                  options={iconOptions}
+                  value={form.icon_name}
+                  onChange={(val) => setForm({ ...form, icon_name: val })}
+                  placeholder="Select Icon"
+                  className="w-full"
+                />
                 <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-brand-gold text-xl flex-shrink-0">
                   {getIconPreview(form.icon_name)}
                 </div>
@@ -141,13 +159,13 @@ export default function AdminFeaturesPage() {
             </div>
             <div>
               <label className="block text-xs text-brand-muted mb-2">Color Theme</label>
-              <select value={form.color_theme} onChange={e => setForm({...form, color_theme: e.target.value})} className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-brand-gold">
-                <option value="yellow">Yellow / Gold</option>
-                <option value="green">Green</option>
-                <option value="cyan">Cyan / Blue</option>
-                <option value="purple">Purple</option>
-                <option value="red">Red</option>
-              </select>
+              {/* ✅ CustomSelect ব্যবহার */}
+              <CustomSelect
+                options={colorOptions}
+                value={form.color_theme}
+                onChange={(val) => setForm({ ...form, color_theme: val })}
+                placeholder="Select Color"
+              />
             </div>
           </div>
 
@@ -156,7 +174,6 @@ export default function AdminFeaturesPage() {
           </button>
         </form>
 
-        {/* Features List */}
         {loading ? (
           <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div></div>
         ) : (
