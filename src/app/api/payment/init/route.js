@@ -1,30 +1,24 @@
 // src/app/api/payment/init/route.js
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { rateLimit } from "@/lib/rateLimit"; // ✅ ইমপোর্ট
 
 export async function POST(req) {
   try {
+    // ✅ রেট লিমিট চেক (১ মিনিটে সর্বোচ্চ ৫ বার পেমেন্ট শুরু করা যাবে)
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const limitResult = rateLimit(ip, 5, 60000);
+    if (!limitResult.success) {
+      return NextResponse.json({ success: false, error: limitResult.message }, { status: 429 });
+    }
+
     const body = await req.json();
-    const {
-      customerName,
-      customerEmail,
-      customerPhone,
-      customerAddress,
-      items,
-      userId,
-    } = body;
+    const { customerName, customerEmail, customerPhone, customerAddress, items, userId } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ success: false, error: "No items in cart" }, { status: 400 });
     }
 
-    // ✅ Server-side amount calculation (client-এর amount সম্পূর্ণ 무시)
-    const serverAmount = items.reduce(
-      (sum, i) => sum + Number(i.price || 0) * Number(i.quantity || 1),
-      0
-    );
-
-    // ✅ প্রতিটি theme ডাটাবেসে আছে কিনা verify
     const themeSlugs = items.map((i) => i.slug).filter(Boolean);
     if (themeSlugs.length === 0) {
       return NextResponse.json({ success: false, error: "Invalid items" }, { status: 400 });
@@ -41,7 +35,6 @@ export async function POST(req) {
 
     const themeMap = new Map(dbThemes.map((t) => [t.slug, t]));
 
-    // ✅ Verified items (DB price দিয়ে, client price নয়)
     const verifiedItems = items.map((item) => {
       const dbTheme = themeMap.get(item.slug);
       if (!dbTheme) throw new Error(`Theme not found: ${item.slug}`);
@@ -54,16 +47,10 @@ export async function POST(req) {
       };
     });
 
-    const verifiedAmount = verifiedItems.reduce(
-      (sum, i) => sum + i.price * i.quantity,
-      0
-    );
+    const verifiedAmount = verifiedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
     if (!Number.isFinite(verifiedAmount) || verifiedAmount <= 0) {
-      return NextResponse.json(
-        { success: false, error: "Invalid amount" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Invalid amount" }, { status: 400 });
     }
 
     const tran_id = `TRX_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
@@ -71,26 +58,14 @@ export async function POST(req) {
 
     const { error: orderError } = await supabaseAdmin
       .from("pending_orders")
-      .insert([
-        {
-          tran_id,
-          amount: verifiedAmount,
-          items: verifiedItems,
-          customer_name: customerName,
-          customer_email: customerEmail,
-          customer_phone: customerPhone,
-          customer_address: customerAddress,
-          user_id: userId,
-          status: "pending",
-        },
-      ]);
+      .insert([{
+        tran_id, amount: verifiedAmount, items: verifiedItems, customer_name: customerName,
+        customer_email: customerEmail, customer_phone: customerPhone, customer_address: customerAddress,
+        user_id: userId, status: "pending",
+      }]);
 
     if (orderError) {
-      console.error("Pending order insert error:", orderError);
-      return NextResponse.json(
-        { success: false, error: "Could not create order: " + orderError.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, error: "Could not create order" }, { status: 500 });
     }
 
     const formData = new URLSearchParams();
@@ -99,11 +74,9 @@ export async function POST(req) {
     formData.append("total_amount", verifiedAmount.toString());
     formData.append("currency", "BDT");
     formData.append("tran_id", tran_id);
-
     formData.append("success_url", `${siteUrl}/api/payment/success?tran_id=${tran_id}`);
     formData.append("fail_url", `${siteUrl}/checkout?status=fail`);
     formData.append("cancel_url", `${siteUrl}/checkout?status=cancel`);
-
     formData.append("cus_name", customerName);
     formData.append("cus_email", customerEmail);
     formData.append("cus_add1", customerAddress || "Dhaka");
@@ -111,7 +84,6 @@ export async function POST(req) {
     formData.append("cus_postcode", "1200");
     formData.append("cus_country", "Bangladesh");
     formData.append("cus_phone", customerPhone);
-
     formData.append("product_name", verifiedItems.map((i) => i.title).join(", ").slice(0, 200));
     formData.append("product_category", "Digital Theme");
     formData.append("product_profile", "digital-goods");
@@ -126,11 +98,7 @@ export async function POST(req) {
     const data = await response.json();
 
     if (data.status === "SUCCESS") {
-      return NextResponse.json({
-        success: true,
-        gatewayUrl: data.GatewayPageURL,
-        tran_id,
-      });
+      return NextResponse.json({ success: true, gatewayUrl: data.GatewayPageURL, tran_id });
     } else {
       await supabaseAdmin.from("pending_orders").delete().eq("tran_id", tran_id);
       return NextResponse.json({ success: false, error: data.failedreason || "Payment gateway rejected" });

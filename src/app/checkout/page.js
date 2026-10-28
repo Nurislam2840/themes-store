@@ -61,6 +61,7 @@ function CheckoutContent() {
     ? [{ themeId: singleTheme.id, title: singleTheme.title, price: singleTheme.price, quantity: 1, slug: singleTheme.slug }]
     : cart;
 
+  // UI-তে দেখানোর জন্য দাম হিসাব
   const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -82,7 +83,7 @@ function CheckoutContent() {
         return;
       }
 
-      // ✅ amount আর client থেকে যাচ্ছে না — server নিজেই হিসাব করবে
+      // ✅ ফিক্স: এখানে শুধু slug এবং quantity পাঠানো হচ্ছে (দাম বা amount পাঠানো হচ্ছে না)
       const response = await fetch("/api/payment/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
