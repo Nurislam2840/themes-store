@@ -1,18 +1,21 @@
+// src/app/my-downloads/page.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 const supabase = createClient();
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAlert } from "@/providers/AlertProvider"; // ✅ Alert Provider ইমপোর্ট
 import { 
-  FaDownload, FaSignOutAlt, FaUser, FaBoxOpen, FaSpinner, 
+  FaDownload, FaSignOutAlt, FaBoxOpen, FaSpinner, 
   FaCheckCircle, FaShoppingBag, FaCrown, FaChartLine, FaArrowRight,
-  FaHeadset, FaWhatsapp, FaHistory, FaCog, FaEye
+  FaHeadset, FaWhatsapp, FaHistory, FaCog
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 export default function MyDownloadsPage() {
   const router = useRouter();
+  const { showAlert } = useAlert(); // ✅ alert এর পরিবর্তে showAlert
   const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,8 +39,12 @@ export default function MyDownloadsPage() {
 
       if (!error && data) {
         const ordersWithTheme = await Promise.all(data.map(async (order) => {
-          const { data: theme } = await supabase.from("themes").select("id, image_url, category").eq("slug", order.theme_slug).single();
-          return { ...order, image_url: theme?.image_url, category: theme?.category };
+          const { data: theme } = await supabase.from("themes").select("id, image_url, categories(name)").eq("slug", order.theme_slug).single();
+          return { 
+            ...order, 
+            image_url: theme?.image_url, 
+            category: theme?.categories?.name || "Theme" // ✅ category ফিক্স
+          };
         }));
         setOrders(ordersWithTheme);
       }
@@ -47,7 +54,7 @@ export default function MyDownloadsPage() {
   }, [router]);
 
   const handleDownload = async (themeSlug) => {
-    if (!themeSlug) return alert("Theme not found.");
+    if (!themeSlug) return showAlert("Theme not found.", "error");
     setDownloading(themeSlug);
     try {
       const res = await fetch("/api/download", {
@@ -60,11 +67,11 @@ export default function MyDownloadsPage() {
       if (res.ok && data.url) {
         window.open(data.url, "_blank");
       } else {
-        alert(data.error || "Download failed. Please contact support.");
+        showAlert(data.error || "Download failed. Please contact support.", "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong.");
+      showAlert("Something went wrong.", "error");
     }
     setDownloading(null);
   };
@@ -89,14 +96,11 @@ export default function MyDownloadsPage() {
 
   return (
     <div className="min-h-screen bg-[#09090B] pt-28 pb-20 px-4 md:px-6 relative overflow-hidden">
-      
-      {/* Background Glows */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-brand-gold/5 blur-[150px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-brand-gold/5 blur-[150px] rounded-full pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         
-        {/* হেডার সেকশন */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 text-brand-gold text-xs font-bold tracking-widest mb-3 border border-brand-gold/20">
@@ -121,7 +125,6 @@ export default function MyDownloadsPage() {
           </div>
         </div>
 
-        {/* স্ট্যাটস গ্রিড */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="relative bg-gradient-to-br from-[#121214] to-[#0A0A0C] border border-white/5 rounded-3xl p-6 overflow-hidden group hover:border-brand-gold/30 transition-all">
@@ -160,7 +163,6 @@ export default function MyDownloadsPage() {
           </motion.div>
         </div>
 
-        {/* ডাউনলোড লিস্ট */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -188,7 +190,6 @@ export default function MyDownloadsPage() {
                 <motion.div key={order.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} 
                   className="bg-[#121214] border border-white/5 rounded-3xl overflow-hidden group hover:border-brand-gold/30 transition-all flex flex-col relative">
                   
-                  {/* Image */}
                   <div className="h-40 overflow-hidden relative">
                     {order.image_url ? (
                       <img src={order.image_url} alt={order.theme_title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
@@ -204,7 +205,7 @@ export default function MyDownloadsPage() {
                   </div>
 
                   <div className="p-5 pt-2 flex-grow">
-                    <p className="text-[10px] text-brand-gold font-bold uppercase tracking-wider mb-1">{order.category || "Theme"}</p>
+                    <p className="text-[10px] text-brand-gold font-bold uppercase tracking-wider mb-1">{order.category}</p>
                     <h3 className="text-lg font-bold text-white mb-1 group-hover:text-brand-gold transition-colors line-clamp-1">
                       {order.theme_title}
                     </h3>
@@ -237,7 +238,6 @@ export default function MyDownloadsPage() {
           )}
         </div>
 
-        {/* হেল্প সেকশন */}
         <div className="bg-gradient-to-r from-[#121214] to-[#0A0A0C] border border-white/5 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-brand-gold/10 text-brand-gold rounded-full flex items-center justify-center text-xl"><FaHeadset /></div>

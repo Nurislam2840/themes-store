@@ -1,5 +1,7 @@
+// src/components/SearchModal.jsx
 "use client";
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image"; // ✅ Next Image
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 const supabase = createClient();
@@ -53,8 +55,9 @@ export default function SearchModal({ isOpen, onClose }) {
                 <p className="text-xs text-brand-muted uppercase tracking-wider px-3 py-2">Top Results</p>
                 {results.map((theme) => (
                   <Link key={theme.id} href={`/themes/${theme.slug}`} onClick={onClose} className="flex items-center gap-4 p-3 hover:bg-white/5 rounded-xl transition-colors group">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
-                      <img src={theme.image_url} alt={theme.title} className="w-full h-full object-cover" />
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
+                      {/* ✅ Next Image ফিক্স */}
+                      <Image src={theme.image_url} alt={theme.title} fill sizes="64px" className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
