@@ -6,7 +6,7 @@ import {
   FaCheckCircle, FaExternalLinkAlt, FaCode, FaLayerGroup, 
   FaMobileAlt, FaFileArchive, FaChrome, FaInfinity, 
   FaCalendarAlt, FaShieldAlt, FaCrown, FaCheck, FaTools, 
-  FaFileAlt, FaStar, FaDownload, FaShoppingBag, FaHome, FaChevronRight
+  FaFileAlt, FaStar, FaDownload, FaHome, FaChevronRight
 } from "react-icons/fa";
 import ThemeDetailActions from "@/components/ThemeDetailActions";
 import ReviewSection from "@/components/ReviewSection";
@@ -29,21 +29,32 @@ async function getTheme(slug) {
   };
 }
 
+// ✅ রিভিউ কাউন্ট আনার জন্য নতুন ফাংশন
+async function getReviewStats(themeId) {
+  const supabase = await createClient();
+  const { data, count } = await supabase
+    .from("reviews")
+    .select("*", { count: "exact", head: true })
+    .eq("theme_id", themeId);
+  
+  // রেটিং এভারেজ বের করা (যদি রিভিউ থাকে)
+  let avgRating = 5.0;
+  if (data && data.length > 0) {
+    const total = data.reduce((acc, curr) => acc + curr.rating, 0);
+    avgRating = (total / data.length).toFixed(1);
+  }
+
+  return { count: count || 0, avgRating };
+}
+
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const theme = await getTheme(resolvedParams.slug);
-
   if (!theme) return { title: "Theme Not Found | ThemesStore" };
-
   return {
     title: `${theme.title} | Premium Themes`,
     description: theme.description?.substring(0, 160) || "Buy premium themes.",
-    openGraph: {
-      title: theme.title,
-      description: theme.description?.substring(0, 160),
-      images: [{ url: theme.image_url }],
-      type: "website",
-    },
+    openGraph: { title: theme.title, images: [{ url: theme.image_url }] },
   };
 }
 
@@ -52,6 +63,9 @@ export default async function ThemeDetailsPage({ params }) {
   const theme = await getTheme(resolvedParams.slug);
 
   if (!theme) notFound();
+
+  // ✅ রিভিউ ডাটা আনা
+  const reviewStats = await getReviewStats(theme.id);
 
   const features = theme.features || [];
   const technologies = theme.technologies || [];
@@ -65,7 +79,6 @@ export default async function ThemeDetailsPage({ params }) {
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-24 pb-20 w-full flex-grow relative z-10">
         
-        {/* Breadcrumb Navigation */}
         <div className="flex items-center gap-2 text-xs md:text-sm text-gray-500 dark:text-brand-muted mb-6 overflow-x-auto whitespace-nowrap pb-2">
           <Link href="/" className="hover:text-brand-gold transition-colors flex items-center gap-1"><FaHome /> Home</Link>
           <FaChevronRight size={10} />
@@ -78,10 +91,7 @@ export default async function ThemeDetailsPage({ params }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10 mb-16 items-start">
           
-          {/* Left Side: Images & Details (Col span 2) */}
           <div className="lg:col-span-2 space-y-8">
-            
-            {/* Main Image */}
             <div className="relative rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-2xl group bg-white dark:bg-[#121214]">
               <img src={theme.image_url} alt={theme.title} className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-700" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
@@ -94,7 +104,6 @@ export default async function ThemeDetailsPage({ params }) {
               </div>
             </div>
 
-            {/* Description Section */}
             <div className="bg-white dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 md:p-8 shadow-sm">
               <div className="flex items-center gap-3 mb-4 border-b border-gray-100 dark:border-white/5 pb-4">
                 <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center text-lg"><FaFileAlt /></div>
@@ -103,7 +112,6 @@ export default async function ThemeDetailsPage({ params }) {
               <p className="text-gray-600 dark:text-brand-muted text-sm md:text-base leading-relaxed whitespace-pre-wrap">{theme.description}</p>
             </div>
 
-            {/* Key Features & Tech Stack Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 shadow-sm">
                 <div className="flex items-center gap-3 mb-5">
@@ -149,7 +157,6 @@ export default async function ThemeDetailsPage({ params }) {
               </div>
             </div>
 
-            {/* File Included */}
             <div className="bg-white dark:bg-[#121214] border border-gray-200 dark:border-white/5 rounded-3xl p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-green-500/10 text-green-500 rounded-xl flex items-center justify-center text-lg"><FaFileArchive /></div>
@@ -165,30 +172,28 @@ export default async function ThemeDetailsPage({ params }) {
               </div>
             </div>
 
-            {/* Gallery Section */}
             {galleryImages.length > 0 && <GallerySection images={galleryImages} />}
-
-            {/* Reviews Section */}
             <ReviewSection themeId={theme.id} />
 
           </div>
 
-          {/* Right Side: Sticky Sidebar (Price & Buy) */}
           <div className="lg:col-span-1">
             <div className="sticky top-28 space-y-6">
               
-              {/* Price Card */}
               <div className="bg-white dark:bg-[#121214] border border-gray-200 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-gold/10 blur-3xl rounded-full -mr-10 -mt-10 pointer-events-none"></div>
                 
                 <p className="text-brand-gold text-xs font-bold uppercase tracking-widest mb-2">{theme.category}</p>
                 <h1 className="text-2xl md:text-3xl font-extrabold mb-4 leading-tight">{theme.title}</h1>
                 
+                {/* ✅ ডাইনামিক রিভিউ কাউন্ট */}
                 <div className="flex items-center gap-3 mb-6">
                   <div className="flex text-brand-gold text-sm">
                     <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
                   </div>
-                  <span className="text-sm text-gray-500 dark:text-brand-muted font-medium">(4.9 / 120 Reviews)</span>
+                  <span className="text-sm text-gray-500 dark:text-brand-muted font-medium">
+                    ({reviewStats.avgRating} / {reviewStats.count} Reviews)
+                  </span>
                 </div>
 
                 <div className="mb-6 border-y border-gray-100 dark:border-white/5 py-6">
@@ -214,7 +219,6 @@ export default async function ThemeDetailsPage({ params }) {
                   </a>
                 </div>
 
-                {/* Trust Badges */}
                 <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-white/5">
                   <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-brand-muted">
                     <div className="w-8 h-8 rounded-full bg-brand-gold/10 text-brand-gold flex items-center justify-center shrink-0"><FaDownload size={12} /></div>
